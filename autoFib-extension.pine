@@ -1,7 +1,7 @@
 //@version=6
 indicator("Auto Fib Extension", overlay=true)
 
-import joostraders/ConfluenceEngine/1 as conf
+import joostraders/ConfluenceEngine/4 as conf
 
 depthTooltip = "The minimum number of bars that will be taken into account when calculating the indicator."
 depth = input.int(title="Depth", defval=10, minval=2, inline = "Pivots", tooltip=depthTooltip)
