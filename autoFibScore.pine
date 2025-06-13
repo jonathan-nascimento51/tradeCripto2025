@@ -1,0 +1,169 @@
+// @function TODO: add function description here
+// @param x TODO: add parameter x description here
+// @returns TODO: add what function returns
+export fun(float x) =>
+	//TODO : add function body and return value here
+	x
+//@version=6
+library('AutoFibCore', overlay=true)
+
+//==============================================================================
+// Pivot detection and Fibonacci extension utilities
+//==============================================================================
+
+// Return pivot point as chart.point if found
+export getPivot(float src, int length, bool isHigh) =>
+    if bar_index >= length
+        price = nz(src[length])
+        found = true
+        for i = 0 to length * 2
+            if (isHigh and src[i] > price) or (not isHigh and src[i] < price)
+                found := false
+                break
+        if found
+            chart.point.from_time(time[length], price)
+
+// Internal helper to draw line linked to the last trend
+export drawLine(line refLine, float price, color col, string extendMode) =>
+    var id = line.new(time, price, time, price, color=col, width=1, extend=extendMode, xloc=xloc.bar_time)
+    if not na(refLine)
+        line.set_xy1(id, line.get_x1(refLine), price)
+        line.set_xy2(id, line.get_x2(refLine), price)
+    id
+
+// Draw label next to level
+export drawLabel(line refLine, float price, string txt, color txtColor, string position, bool extendRight) =>
+    if not na(price)
+        var x = position == 'Left' ? line.get_x1(refLine) : (not extendRight ? line.get_x2(refLine) : time)
+        var style = position == 'Left' ? label.style_label_right : label.style_label_left
+        var align = position == 'Left' ? text.align_right : text.align_left
+        var labelsAlignStrLeft  = txt + '\n\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\n'
+        var labelsAlignStrRight = '       ' + txt + '\n\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\u200f\n'
+        var labelsAlignStr = position == 'Left' ? labelsAlignStrLeft : labelsAlignStrRight
+        var id = label.new(x=x, y=price, text=labelsAlignStr, textcolor=txtColor, style=style, textalign=align, color=#00000000, xloc=xloc.bar_time)
+        label.set_xy(id, x, price)
+        label.set_text(id, labelsAlignStr)
+        label.set_textcolor(id, txtColor)
+
+// Simple text wrapper
+export wrap(float txt) => '(' + str.tostring(txt, format.mintick) + ')'
+
+// Format label based on configuration
+export formatLabel(float level, float price, string fmt, bool showLevels, bool showPrices) =>
+    if not na(price)
+        strLevel = fmt == 'Values' ? str.tostring(level) : str.tostring(level * 100) + '%'
+        (showLevels ? strLevel : '') + (showPrices ? wrap(price) : '')
+
+// Check level crossing
+export crossingLevel(float sr, float r) => (r > sr and r < sr[1]) or (r < sr and r > sr[1])
+
+// Main level processing
+export processLevel(bool show, float value, color col, line refLine, float endPrice, float diff, bool reverse, string extendMode, string fmt, bool showLevels, bool showPrices, string position, bool extendRight, int bgTrans) =>
+    float m = value
+    float r = endPrice + ((reverse ? -1 : 1) * diff * m)
+    line lineId = na
+    if show
+        lineId := drawLine(refLine, r, col, extendMode)
+        drawLabel(refLine, r, formatLabel(m, r, fmt, showLevels, showPrices), col, position, extendRight)
+        if crossingLevel(close, r)
+            alert('Autofib: ' + syminfo.ticker + ' crossing level ' + str.tostring(value))
+    if show and not na(refLine)
+        linefill.new(lineId, refLine, color=color.new(col, bgTrans))
+    show ? lineId : refLine
+
+// Detect pivots and return endPrice, diff and reference line
+export update(int depth, float upperThreshold, float lowerThreshold) =>
+    var line lineLastHL = na
+    var line lineLastLH = na
+    var line lineLast   = na
+
+    var chart.point[] pivotsH = array.new<chart.point>()
+    var chart.point lastH = na
+    var chart.point[] pivotsL = array.new<chart.point>()
+    var chart.point lastL = na
+
+    var bool isHighLast = false
+    var float startPrice = na
+    var float endPrice = na
+
+    H = getPivot(high, depth / 2, true)
+    L = getPivot(low, depth / 2, false)
+
+    countPivotsH = array.size(pivotsH)
+    countPivotsL = array.size(pivotsL)
+
+    if countPivotsH > 0 and countPivotsL > 0
+        lastH := array.get(pivotsH, countPivotsH - 1)
+        lastL := array.get(pivotsL, countPivotsL - 1)
+        isHighLast := lastH.time > lastL.time
+        if isHighLast
+            if not na(H) and H.price > lastH.price
+                array.set(pivotsH, countPivotsH - 1, H)
+                H := na
+        else
+            if not na(L) and L.price < lastL.price
+                array.set(pivotsL, countPivotsL - 1, L)
+                L := na
+
+    if not na(H)
+        array.push(pivotsH, H)
+    if not na(L)
+        array.push(pivotsL, L)
+
+    if barstate.islast and array.size(pivotsH) > 0 and array.size(pivotsL) > 0
+        pivotsHCopy = array.copy(pivotsH)
+        pivotsLCopy = array.copy(pivotsL)
+        while array.size(pivotsHCopy) > 0 and array.size(pivotsLCopy) > 0
+            lastH := array.pop(pivotsHCopy)
+            lastL := array.pop(pivotsLCopy)
+
+            isHighLast := lastH.time > lastL.time
+            pivots = isHighLast ? pivotsHCopy : pivotsLCopy
+
+            for i = array.size(pivots) - 1 to 0 by -1
+                p = array.get(pivots, i)
+                if p.time < lastL.time
+                    break
+                if p.price > lastH.price
+                    lastH := array.pop(pivots)
+                else
+                    array.remove(pivots, i)
+
+            if array.size(pivotsHCopy) == 0 or array.size(pivotsLCopy) == 0
+                break
+
+            isHighLast := lastH.time > lastL.time
+            pivots := isHighLast ? pivotsHCopy : pivotsLCopy
+
+            prevPivot = array.get(pivots, array.size(pivots) - 1)
+            startPrice := prevPivot.price
+
+            if isHighLast
+                endPrice := lastL.price
+                diff = math.abs(startPrice - endPrice)
+                if lastH.price > endPrice + diff * lowerThreshold or lastH.price < endPrice + diff * upperThreshold
+                    array.push(pivotsLCopy, lastL)
+                    continue
+                line.delete(lineLastHL)
+                line.delete(lineLastLH)
+                lineLastHL := line.new(prevPivot, lastL, color=color.red, width=1, style=line.style_dashed, xloc=xloc.bar_time)
+                lineLastLH := line.new(lastL, lastH, color=color.green, width=1, style=line.style_dashed, xloc=xloc.bar_time)
+                lineLast := lineLastLH
+            else
+                endPrice := lastH.price
+                diff = math.abs(startPrice - endPrice)
+                if lastL.price < endPrice - diff * lowerThreshold or lastL.price > endPrice - diff * upperThreshold
+                    array.push(pivotsHCopy, lastH)
+                    continue
+                line.delete(lineLastHL)
+                line.delete(lineLastLH)
+                lineLastLH := line.new(prevPivot, lastH, color=color.red, width=1, style=line.style_dashed, xloc=xloc.bar_time)
+                lineLastHL := line.new(lastH, lastL, color=color.green, width=1, style=line.style_dashed, xloc=xloc.bar_time)
+                lineLast := lineLastHL
+            break
+    diff = (isHighLast ? -1 : 1) * math.abs(startPrice - endPrice)
+    offset = isHighLast ? line.get_y1(lineLastLH) - line.get_y2(lineLastLH) : line.get_y1(lineLastHL) - line.get_y2(lineLastHL)
+    offset := (isHighLast ? -1 : 1) * math.abs(offset)
+    if barstate.islast and na(lineLast)
+        runtime.error('Not enough data to calculate Auto Fib Extension on the current symbol. Change the chart\'s timeframe to a lower one or select a smaller calculation depth using the indicator\'s `Depth` settings.')
+    [endPrice - offset, diff, lineLast]
