@@ -26,6 +26,11 @@ lowerThreshold = 1.0
 
 import TradingView/ZigZag/7 as zigzag
 
+// --- Confluence Engine state arrays
+var float[] pivotHistory = array.new<float>()
+var line[]  zoneLines     = array.new<line>()
+var label[] zoneLabels    = array.new<label>()
+
 pivots(src, length, isHigh) =>
     if bar_index >= length
         price = nz(src[length])
@@ -141,6 +146,9 @@ update()=>
     [endPrice - offset, diff, lineLast]
 
 [endPrice, diff, lineLast] = update()
+
+// store the last detected pivot for confluence analysis
+pivotHistory := conf.addPivotToHistory(endPrice, pivotHistory)
 
 _draw_line(price, col) =>
     var id = line.new(time, price, time, price, color=col, width=1, extend=extending, xloc = xloc.bar_time)
@@ -299,3 +307,11 @@ lineId18 = processLevel(show_3_618, value_3_618, color_3_618, lineId17)
 lineId19 = processLevel(show_3_65, value_3_65, color_3_65, lineId18)
 lineId20 = processLevel(show_4_236, value_4_236, color_4_236, lineId19)
 lineId21 = processLevel(show_4_618, value_4_618, color_4_618, lineId20)
+
+// ------------------------------------------------------------------------------
+// Confluence Engine: cluster Fibonacci levels from recent pivots
+// Verificação ainda mais robusta, exigindo pelo menos 2 pivôs para confluência
+if array.size(pivotHistory) > 1    
+    float[] fibRatios = array.from(value_neg_0_65, value_neg_0_618, value_neg_0_382, value_neg_0_236,value_0, value_0_236, value_0_382, value_0_5,value_0_618, value_0_65, value_0_786, value_1,value_1_272, value_1_414, value_1_618, value_1_65,value_2_618, value_2_65, value_3_618, value_3_65,value_4_236, value_4_618)
+    [clusters, weights] = conf.groupFiboLevels(pivotHistory, fibRatios)
+    conf.drawConfluenceZones(clusters, weights, zoneLines, zoneLabels)
