@@ -39,21 +39,35 @@ score = conf.calcWeight(params)
 
 Load `ConfluenceExample.pine` on a chart and adjust the inputs to experiment with different weights.
 
-## LogisticRegressionUtils
-`logistic_regression_utils.pine` exposes two helper functions:
+## Main Scripts
 
-- `logistic(x1, x2, w0, w1, w2)` – calculates the logistic probability for the given inputs and weights.
-- `logLoss(y, p)` – computes the logistic loss given the expected label `y` and model probability `p`.
+### `autoFib-extension.pine`
+Automatically draws Fibonacci extension levels using a zigzag based pivot search. The indicator exposes many inputs to customize which Fibonacci ratios are displayed and whether the lines extend left or right.
 
-`SupportandResistanceLogisticRegression.pine` demonstrates how these utilities can be used to train a simple logistic regression model on-the-fly to score potential support or resistance levels. how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:
+### `combined_indicator.pine`
+Demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
-```json
-{
-  "distanceCoeff": 1.0,
-  "signalCoeff": 1.2,
-  "retestCoeff": 0.8,
-  "temporalCoeff": 0.5
-}
-```
+### `SupportandResistanceLogisticRegression.pine`
+Full implementation of a logistic regression approach to support and resistance detection. It classifies pivots, plots the resulting zones and can generate alerts when retests or breaks occur.
 
-Load `ConfluenceExample.pine` on a chart and adjust the inputs to experiment with different weights.
+## Helper Libraries
+
+### `pivot_utils.pine`
+Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing highs and lows.
+
+### `fibonacci_utils.pine`
+Contains a utility to draw common Fibonacci extension levels between two prices.
+
+### `logistic_regression_utils.pine`
+Provides a logistic function and log-loss calculation used by the indicators.
+
+## Using the Libraries
+
+1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/1`).
+2. In your indicator or strategy, import the library with the `import` statement:
+
+   ```pinescript
+   import Codex/PivotUtils/1 as pv
+   ```
+
+   Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.
