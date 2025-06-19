@@ -1,0 +1,57 @@
+//@version=6
+// =============================================================================
+//  ConfluenceLib (Versão Corrigida e Final)
+//  ▸ Exporta os tipos 'ConfluenceInput' e 'CalculatedWeights' para uso externo.
+//  ▸ Implementa as regras de cálculo baseadas na sua especificação JSON.
+// =============================================================================
+library("ConfluenceLib", true)
+
+// UDT PARA DADOS DE ENTRADA
+// Agrupa todos os valores brutos necessários para o cálculo.
+export type ConfluenceInput
+    float fib_price
+    float sr_price
+    float sr_pred_probability
+    float atr
+    int fib_bar_index
+    int sr_times_respected
+    int sr_target_respects
+    int sr_bar_index
+    float distance_threshold
+    int max_temporal_diff
+    float w1
+    float w2
+    float w3
+    float w4
+
+// UDT PARA OS RESULTADOS CALCULADOS
+// Armazena os resultados intermediários e a pontuação final.
+export type CalculatedWeights
+    float distance_abs
+    float distance_pct
+    int temporal_difference
+    float distance_weight
+    float signal_weight
+    float retests_weight
+    float temporal_weight
+    float confluence_weight
+
+// FUNÇÃO PRINCIPAL EXPORTADA
+// Executa todo o fluxo de cálculo.
+export method calculateConfluence(ConfluenceInput input) =>
+    // --- Passo 1: Calcular as métricas base ---
+    var float dist_abs = math.abs(input.fib_price - input.sr_price)
+    var float dist_pct = input.atr > 0 ? dist_abs / input.atr : 0
+    var int temp_diff = math.abs(input.fib_bar_index - input.sr_bar_index)
+
+    // --- Passo 2: Calcular os pesos intermediários ---
+    var float dist_w = math.max(0, 1 - dist_pct / input.distance_threshold)
+    var float signal_w = input.sr_pred_probability
+    var float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
+    var float temporal_w = input.max_temporal_diff > 0 ? math.max(0, 1 - temp_diff / float(input.max_temporal_diff)) : 0
+
+    // --- Passo 3: Calcular a pontuação de confluência final ---
+    var float final_weight = (dist_w * input.w1) + (signal_w * input.w2) + (retests_w * input.w3) + (temporal_w * input.w4)
+
+    // --- Passo 4: Retornar todos os resultados em um objeto estruturado ---
+    CalculatedWeights.new(dist_abs, dist_pct, temp_diff, dist_w, signal_w, retests_w, temporal_w, final_weight)

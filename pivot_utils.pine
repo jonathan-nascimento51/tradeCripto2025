@@ -1,0 +1,10 @@
+//@version=6
+library(title="PivotUtils", overlay=false)
+
+// Returns a pivot‐high value using ta.pivothigh
+export pivotHigh(float src, int len) =>
+    ta.pivothigh(src, len, len)
+
+// Returns a pivot‐low value using ta.pivotlow
+export pivotLow(float src, int len) =>
+    ta.pivotlow(src, len, len)

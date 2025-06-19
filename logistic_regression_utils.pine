@@ -1,0 +1,11 @@
+//@version=6
+library("LogisticRegressionUtils", overlay=false)
+
+// Basic logistic function used by the model
+export logistic(float x1, float x2, float w0, float w1, float w2) =>
+    float exponent = math.exp(-(w0 + w1 * x1 + w2 * x2))
+    1.0 / (1.0 + exponent)
+
+// Logistic regression loss utility
+export logLoss(float y, float p) =>
+    -y * math.log(p) - (1.0 - y) * math.log(1.0 - p)

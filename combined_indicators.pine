@@ -1,0 +1,221 @@
+//@version=6
+// ============================================================================
+//  Combined S/R + Fib (Confluence Edition v6)
+//  • Motor de Confluência e visualização com caixas (heat-map)
+//  • Usa ConfluenceLib para pontuar sobreposição de S/R e Fibonacci
+//  • Módulos de S/R e Fibonacci em UDTs para gestão de estado
+//  • By: Trader-Cientista de Dados em Pine Script
+// ============================================================================
+
+// --------------------------- BIBLIOTECAS ------------------------------------
+import jonathanmoletta17/LogisticRegressionUtils/1  as lr
+import jonathanmoletta17/PivotUtils/2               as pv
+import jonathanmoletta17/ConfluenceLib/2            as conf
+
+// --------------------------- PARÂMETROS -------------------------------------
+indicator("Combined S/R + Fib (Confluence v6)", "CSFC_v6",overlay = true, max_lines_count = 500, max_labels_count = 300, max_boxes_count   = 100)
+
+// ▸ Subsistemas
+srEnabled   = input.bool(true , "Enable Support/Resistance",  group = "Subsystems")
+fibEnabled  = input.bool(true , "Enable Fibonacci Extensions", group = "Subsystems")
+confEnabled = input.bool(true , "Enable Confluence Zones",     group = "Subsystems")
+
+// ▸ Confluência
+confThresholdATR = input.float(0.25, "ATR distance (×)",         group = "Confluence Engine",
+                               tooltip = "Máx. distância (ATR) p/ considerar confluência")
+w1 = input.float(0.4, "Weight – Distance" , group = "Confluence Engine")
+w2 = input.float(0.3, "Weight – Signal"   , group = "Confluence Engine")
+w3 = input.float(0.2, "Weight – Retests"  , group = "Confluence Engine")
+w4 = input.float(0.1, "Weight – Temporal" , group = "Confluence Engine")
+
+// ▸ Support / Resistance
+length        = input.int  (14 , "Pivot Length",                    group = "Support/Resistance")
+probThreshold = input.float(0.7, "Prob Threshold", minval = 0, maxval = 1,
+                             group = "Support/Resistance")
+retestCount   = input.int  (1  , "Retests to Validate", minval = 1, maxval = 5,
+                             group = "Support/Resistance")
+
+// ▸ Estilo S/R
+srColorRes    = input.color(color.new(color.red  ,   0), "Resistance (Active)", group = "Style – S/R")
+srColorSup    = input.color(color.new(color.green,   0), "Support (Active)"   , group = "Style – S/R")
+srColorValid  = input.color(color.new(color.orange, 0), "Validated Level"     , group = "Style – S/R")
+srColorBroken = input.color(color.new(color.gray , 50), "Broken Level"        , group = "Style – S/R")
+srWidthActive = input.int  (1, "Width (Active)"   , minval = 1, maxval = 4, group = "Style – S/R")
+srWidthValid  = input.int  (2, "Width (Validated)", minval = 1, maxval = 4, group = "Style – S/R")
+
+// ▸ Fibonacci
+fibBaseColor = input.color(color.new(color.gray , 40), "≤1× Base color", group = "Style – Fib")
+fibExtUpCol  = input.color(color.new(color.green,  0), ">1× Up color"  , group = "Style – Fib")
+fibExtDnCol  = input.color(color.new(color.red  ,  0), ">1× Down color", group = "Style – Fib")
+fibWidth     = input.int  (1, "Line width", minval = 1, maxval = 4,      group = "Style – Fib")
+labelSizeOpt = input.string("tiny", "Label size", options = ["tiny","small","normal"],
+                             group = "Style – Fib")
+labelOffset  = input.int  (2, "Label offset (bars)", minval = 0,          group = "Style – Fib")
+
+// --------------------------- ESTRUTURAS -------------------------------------
+const int MAX_SR_ZONES    = 60
+const int MAX_FIB_LEVELS  = 20
+const int MAX_CONF_BOXES  = 40
+
+type SR_Zone
+    int     id
+    int     bar_index
+    line    ln
+    label   lbl
+    float   level
+    float   probability
+    bool    isSupport
+    int     retests   = 0
+    string  status    = "Active"
+
+type FibLevel
+    line    ln
+    label   lbl
+    float   level
+    float   ratio
+    int     bar_index
+
+var SR_Zone[]  sr_zones   = array.new<SR_Zone>()
+var FibLevel[] fib_levels = array.new<FibLevel>()
+var box[]      confBoxes  = array.new_box()
+
+// --------------------------- UTILITÁRIAS ------------------------------------
+f_pushZone(SR_Zone zone) =>
+    array.push(sr_zones, zone)
+    if array.size(sr_zones) > MAX_SR_ZONES
+        SR_Zone old = array.shift(sr_zones)
+        line.delete(old.ln)
+        label.delete(old.lbl)
+
+f_clearZones() =>
+    for z in sr_zones
+        line.delete(z.ln)
+        label.delete(z.lbl)
+    array.clear(sr_zones)
+
+f_clearFibLevels() =>
+    for f in fib_levels
+        line.delete(f.ln)
+        label.delete(f.lbl)
+    array.clear(fib_levels)
+
+f_pushBox(box b) =>
+    array.push(confBoxes, b)
+    if array.size(confBoxes) > MAX_CONF_BOXES
+        box old = array.shift(confBoxes)
+        box.delete(old)
+
+f_clearBoxes() =>
+    for b in confBoxes
+        box.delete(b)
+    array.clear(confBoxes)
+
+// --------------------------- MARKET DATA ------------------------------------
+ph        = pv.pivotHigh(high, length)
+pl        = pv.pivotLow (low , length)
+rsi       = ta.rsi(close, length)
+atr       = ta.atr(length)
+bodySize  = math.abs(close - open)
+rsiBin    = rsi > 50  ? 1 : -1
+bodyBin   = bodySize > atr ? 1 : -1
+
+// --------------------------- S/R LIFECYCLE ----------------------------------
+if srEnabled
+    // novos pivôs
+    if not na(ph)
+        float prob = lr.logistic(rsiBin, bodyBin, 1.0, 1.0, 1.0)
+        if prob > probThreshold
+            line  ln  = line.new(bar_index - length, ph, bar_index, ph,
+                                 color = srColorRes, extend = extend.right, width = srWidthActive)
+            label lb  = label.new(bar_index, ph, "", style = label.style_none)
+            f_pushZone(SR_Zone.new(time, bar_index, ln, lb, ph, prob, false))
+
+    if not na(pl)
+        float prob = lr.logistic(rsiBin, bodyBin, 1.0, 1.0, 1.0)
+        if prob > probThreshold
+            line  ln  = line.new(bar_index - length, pl, bar_index, pl,
+                                 color = srColorSup, extend = extend.right, width = srWidthActive)
+            label lb  = label.new(bar_index, pl, "", style = label.style_none)
+            f_pushZone(SR_Zone.new(time, bar_index, ln, lb, pl, prob, true))
+
+    // ciclo de vida
+    for zone in sr_zones
+        if zone.status != "Broken"
+            bool isRetest = zone.isSupport ? low  < zone.level and close >= zone.level
+                                           : high > zone.level and close <= zone.level
+            bool isBroken = zone.isSupport ? close < zone.level
+                                           : close > zone.level
+
+            if isRetest
+                zone.retests += 1
+                zone.lbl.set_text(str.tostring(zone.retests))
+                zone.lbl.set_x(bar_index)
+                zone.lbl.set_textcolor(srColorValid)
+                if zone.retests >= retestCount
+                    zone.status := "Validated"
+                    zone.ln.set_color(srColorValid)
+                    zone.ln.set_width(srWidthValid)
+
+            if isBroken
+                zone.status := "Broken"
+                zone.ln.set_color(srColorBroken)
+                zone.ln.set_width(srWidthActive)
+                zone.ln.set_style(line.style_dotted)
+                zone.ln.set_extend(extend.none)
+                zone.lbl.set_text("B")
+                zone.lbl.set_textcolor(srColorBroken)
+else
+    f_clearZones()
+
+// --------------------------- FIBONACCI --------------------------------------
+var float lastHigh = na
+var float lastLow  = na
+
+if not na(ph)
+    lastHigh := ph
+if not na(pl)
+    lastLow  := pl
+
+if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
+    f_clearFibLevels()
+    float diff  = math.abs(lastHigh - lastLow)
+    bool  isUp  = lastHigh > lastLow
+    float[] ratios = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
+
+    for idx = 0 to array.size(ratios) - 1
+        float r   = array.get(ratios, idx)
+        float y   = isUp ? lastHigh + diff * r : lastLow - diff * r
+        bool  ext = r > 1.0
+        color lnC = ext ? (isUp ? fibExtUpCol : fibExtDnCol) : fibBaseColor
+
+        line ln = line.new(bar_index, y, bar_index + 1, y,
+                           color = lnC,
+                           style = ext ? line.style_solid : line.style_dotted,
+                           width = fibWidth,
+                           extend = extend.right)
+
+        string txt = str.format("{0,number,##.##}% → {1}", r * 100, y)
+        label lb  = label.new(bar_index + (idx % 2 == 0 ?  labelOffset : -labelOffset), y, text = txt, xloc = xloc.bar_index, style = idx % 2 == 0 ? label.style_label_left : label.style_label_right,color = color.new(lnC, 80), textcolor = lnC, size = labelSizeOpt)
+
+        array.push(fib_levels, FibLevel.new(ln, lb, y, r, bar_index))
+else if not fibEnabled
+    f_clearFibLevels()
+
+// --------------------------- CONFLUÊNCIA ------------------------------------
+if confEnabled and srEnabled and fibEnabled and barstate.isconfirmed
+    f_clearBoxes()
+    if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
+        for zone in sr_zones
+            if zone.status != "Broken"
+                for fib in fib_levels
+                    if math.abs(zone.level - fib.level) < atr * confThresholdATR
+                        conf.ConfluenceInput ci = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4)
+
+                        conf.CalculatedWeights cw = conf.calculateConfluence(ci)
+                        float score = cw.confluence_weight
+                        if score > 0
+                            color bg  = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
+                            box   bx  = box.new(bar_index, math.max(zone.level, fib.level), bar_index + 20, math.min(zone.level, fib.level), bgcolor = color.new(bg, 70), border_color = color.new(bg, 40), text = "Conf: " + str.tostring(score, "#.##"), text_halign  = text.align_center)
+                            f_pushBox(bx)
+else
+    f_clearBoxes()
