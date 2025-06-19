@@ -48,7 +48,7 @@ update()=>
     var isHighLast = false
     var float startPrice = na
     var float endPrice = na
-@@ -111,52 +110,52 @@ update()=>
+update()=>
                 endPrice := lastL.price
                 diff = math.abs(startPrice - endPrice)
                 if lastH.price > endPrice + diff * lowerThreshold or lastH.price < endPrice + diff * upperThreshold
