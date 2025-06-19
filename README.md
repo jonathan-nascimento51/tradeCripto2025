@@ -1,5 +1,7 @@
 # tradeCripto2025
 
+This project is licensed under the Mozilla Public License 2.0. See [LICENSE](LICENSE) for details.
+
 This repository hosts a small collection of Pine Script **v6** indicators for use on TradingView. The scripts are provided as study material for traders wanting to experiment with automatic Fibonacci extensions and support/resistance detection using logistic regression.
 
 ## Included indicators
