@@ -1,0 +1,26 @@
+//@version=6
+library('ConfluenceLib')
+
+// Type holding parameters for confluence calculation
+// distance         : price difference between levels
+// signalStrength   : how strong the original signal is (0-1 range)
+// retests          : number of retests on the level
+// temporalDiff     : bars difference between the levels
+// coefficient fields weight each parameter in the final score
+
+type WeightParams
+    float distance
+    float signalStrength
+    int   retests
+    int   temporalDiff
+    float distanceCoeff
+    float signalCoeff
+    float retestCoeff
+    float temporalCoeff
+
+// Returns the weighted confluence score
+calcWeight(WeightParams p) =>
+    p.distance * p.distanceCoeff +
+    p.signalStrength * p.signalCoeff +
+    float(p.retests) * p.retestCoeff +
+    float(p.temporalDiff) * p.temporalCoeff
