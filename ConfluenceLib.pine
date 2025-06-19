@@ -9,6 +9,7 @@ library('ConfluenceLib')
 // coefficient fields weight each parameter in the final score
 
 type WeightParams
+export type WeightParams
     float distance
     float signalStrength
     int   retests
@@ -20,6 +21,7 @@ type WeightParams
 
 // Returns the weighted confluence score
 calcWeight(WeightParams p) =>
+export calcWeight(WeightParams p) =>
     p.distance * p.distanceCoeff +
     p.signalStrength * p.signalCoeff +
     float(p.retests) * p.retestCoeff +
