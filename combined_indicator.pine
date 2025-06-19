@@ -1,7 +1,7 @@
 //@version=6
-import Codex/LogisticRegressionUtils/1 as lr
-import Codex/PivotUtils/1 as pv
-import Codex/FibonacciUtils/1 as fib
+import jonathanmoletta17/LogisticRegressionUtils/1 as lr
+import jonathanmoletta17/PivotUtils/2 as pv
+import jonathanmoletta17/FibonacciUtils/2 as fib
 
 indicator("Combined S/R + Fib", overlay=true)
 
@@ -36,4 +36,4 @@ if srEnabled
         lastLow := pl
 
 if fibEnabled and not na(lastHigh) and not na(lastLow)
-    fib.drawExtensions(lastLow, lastHigh, true, color.green, color.red)
+    fib.drawExtensions(lastLow, lastHigh, true, color.green, color.red, 2)

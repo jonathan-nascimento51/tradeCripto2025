@@ -19,9 +19,5 @@ export type WeightParams
     float temporalCoeff
 
 // Returns the weighted confluence score
-calcWeight(WeightParams p) =>
 export calcWeight(WeightParams p) =>
-    p.distance * p.distanceCoeff +
-    p.signalStrength * p.signalCoeff +
-    float(p.retests) * p.retestCoeff +
-    float(p.temporalDiff) * p.temporalCoeff
+    p.distance * p.distanceCoeff + p.signalStrength * p.signalCoeff + float(p.retests) * p.retestCoeff + float(p.temporalDiff) * p.temporalCoeff

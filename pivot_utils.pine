@@ -1,10 +1,10 @@
 //@version=6
-library("Codex/PivotUtils/1", overlay=false)
+library(title="PivotUtils", overlay=false)
 
-// Returns pivot high using ta.pivothigh
-export pivotHigh(src, len) =>
+// Returns a pivot‐high value using ta.pivothigh
+export pivotHigh(float src, int len) =>
     ta.pivothigh(src, len, len)
 
-// Returns pivot low using ta.pivotlow
-export pivotLow(src, len) =>
+// Returns a pivot‐low value using ta.pivotlow
+export pivotLow(float src, int len) =>
     ta.pivotlow(src, len, len)
