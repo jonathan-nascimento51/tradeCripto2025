@@ -2,7 +2,7 @@
 // © fluxchart
 //
 //@version=6
-import Codex/LogisticRegressionUtils/1 as lr  // provides logistic() and logLoss()
+import Codex/LogisticRegressionUtils/1 as lrUtils
 
 const bool DEBUG = false
 const int retestCooldown = 3
@@ -50,11 +50,8 @@ var allPivots = array.new<srLine>()
 var respectedPivots = array.new<srLine>()
 var regressionPivots = array.new<srLine>()
 
-
 //#region Logistic Regression
-// Uses logistic() and logLoss() from Codex/LogisticRegressionUtils/1
-const float learningRate = 0.008
-
+const float lr = 0.008
 
 predict(_isSupport, _level, _rsi, _bodySize) =>
     float baseBias = 1.0
@@ -74,15 +71,15 @@ predict(_isSupport, _level, _rsi, _bodySize) =>
                 continue
             
             isRespected = curRS.timesRespected >= targetRespects ? 1.0 : -1.0
-            p = lr.logistic(curRS.detectedRSI, curRS.detectedBodySize, baseBias, rsiBias, bodySizeBias)
+            p = lrUtils.logistic(curRS.detectedRSI, curRS.detectedBodySize, baseBias, rsiBias, bodySizeBias)
 
 
-            loss = lr.logLoss(isRespected, p)
+            loss = lrUtils.logLoss(isRespected, p)
 
-            rsiBias -= learningRate * (p + loss) * curRS.detectedRSI
-            bodySizeBias -= learningRate * (p + loss) * curRS.detectedBodySize
+            rsiBias -= lr * (p + loss) * curRS.detectedRSI
+            bodySizeBias -= lr * (p + loss) * curRS.detectedBodySize
 
-            _logRes := lr.logistic(_rsi, _bodySize, baseBias, rsiBias, bodySizeBias)
+            _logRes := lrUtils.logistic(_rsi, _bodySize, baseBias, rsiBias, bodySizeBias)
     
     _logRes
 //#endregion
