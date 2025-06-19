@@ -1,0 +1,39 @@
+//@version=6
+import Codex/LogisticRegressionUtils/1 as lr
+import Codex/PivotUtils/1 as pv
+import Codex/FibonacciUtils/1 as fib
+
+indicator("Combined S/R + Fib", overlay=true)
+
+srEnabled = input.bool(true, "Enable Support/Resistance", group="Subsystems")
+fibEnabled = input.bool(false, "Enable Fibonacci Extensions", group="Subsystems")
+
+length = input.int(14, "Pivot Length", group="Support/Resistance")
+probThreshold = input.float(0.7, "Prob Threshold", minval=0.0, maxval=1.0, group="Support/Resistance")
+
+var float lastHigh = na
+var float lastLow = na
+
+ph = pv.pivotHigh(high, length)
+pl = pv.pivotLow(low, length)
+
+rsi = ta.rsi(close, length)
+atr = ta.atr(length)
+bodySize = math.abs(close - open)
+rsiBin = rsi > 50 ? 1 : -1
+bodyBin = bodySize > atr ? 1 : -1
+
+if srEnabled
+    if not na(ph)
+        prob = lr.logistic(rsiBin, bodyBin, 1.0, 1.0, 1.0)
+        if prob > probThreshold
+            line.new(bar_index - length, ph, bar_index, ph, color=color.red, extend=extend.right)
+        lastHigh := ph
+    if not na(pl)
+        prob = lr.logistic(rsiBin, bodyBin, 1.0, 1.0, 1.0)
+        if prob > probThreshold
+            line.new(bar_index - length, pl, bar_index, pl, color=color.green, extend=extend.right)
+        lastLow := pl
+
+if fibEnabled and not na(lastHigh) and not na(lastLow)
+    fib.drawExtensions(lastLow, lastHigh, true, color.green, color.red)
