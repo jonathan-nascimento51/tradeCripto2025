@@ -1,0 +1,11 @@
+//@version=6
+library("Codex/FibonacciUtils/1", overlay=true)
+
+// Draws basic Fibonacci extension levels between two prices
+export drawExtensions(startPrice, endPrice, extendRight, colUp, colDown) =>
+    diff = endPrice - startPrice
+    levels = array.from(0.0, 0.236, 0.382, 0.5, 0.618, 1.0, 1.618)
+    for level in levels
+        price = endPrice + diff * level
+        c = diff >= 0 ? colUp : colDown
+        line.new(bar_index[1], price, bar_index, price, xloc = xloc.bar_index, extend = extendRight ? extend.right : extend.none, color=c)
