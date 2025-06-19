@@ -8,7 +8,6 @@ library('ConfluenceLib')
 // temporalDiff     : bars difference between the levels
 // coefficient fields weight each parameter in the final score
 
-type WeightParams
 export type WeightParams
     float distance
     float signalStrength
