@@ -1,0 +1,48 @@
+//@version=6
+indicator('Confluence Example', overlay=true)
+
+import ConfluenceLib as conf
+
+// Example coefficients usually provided via JSON
+coefDistance = input.float(1.0, 'Distance Weight')
+coefSignal   = input.float(1.0, 'Signal Strength Weight')
+coefRetests  = input.float(1.0, 'Retests Weight')
+coefTemporal = input.float(1.0, 'Temporal Diff Weight')
+
+// Threshold in price percentage for considering overlap
+levelThreshold = input.float(0.002, 'Overlap Threshold %', step=0.001)
+
+// Simple support and resistance detection using pivots
+pivotLen = input.int(10, 'Pivot Length')
+ph = ta.pivothigh(pivotLen, pivotLen)
+pl = ta.pivotlow(pivotLen, pivotLen)
+var float[] srLevels = array.new<float>()
+var int[]   srTimes  = array.new<int>()
+if not na(ph)
+    array.push(srLevels, high[pivotLen])
+    array.push(srTimes, bar_index[pivotLen])
+if not na(pl)
+    array.push(srLevels, low[pivotLen])
+    array.push(srTimes, bar_index[pivotLen])
+
+// Fibonacci levels from the last defined range
+fibPeriod = input.int(50, 'Fib Period')
+float hh = ta.highest(high, fibPeriod)
+float ll = ta.lowest(low, fibPeriod)
+var float[] fibLevels = array.from(ll, ll + (hh-ll)*0.382, ll + (hh-ll)*0.618, hh)
+var int[]   fibTimes  = array.from(bar_index, bar_index, bar_index, bar_index)
+
+// Iterate over levels and report confluence score when overlapping
+for i = 0 to array.size(srLevels)-1
+    srLevel = array.get(srLevels, i)
+    srTime  = array.get(srTimes, i)
+    for j = 0 to array.size(fibLevels)-1
+        fibLevel = array.get(fibLevels, j)
+        fibTime  = array.get(fibTimes, j)
+        distance = math.abs(srLevel - fibLevel)/close
+        if distance <= levelThreshold
+            strength = 1.0 - distance/levelThreshold
+            barsDiff = math.abs(srTime - fibTime)
+            params = conf.WeightParams.new(distance, strength, 1, barsDiff, coefDistance, coefSignal, coefRetests, coefTemporal)
+            score = conf.calcWeight(params)
+            label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'))
