@@ -192,9 +192,6 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
     float x1 = rsi > rsiThreshold ? 1 : -1
     float x2 = math.abs(close - open) > atr ? 1 : -1
     float prob = lr.logistic(x1, x2, finalW0, finalW1, finalW2)
-    float pivRsi   = rsi[length]
-    float pivOpen  = open[length]
-    float pivClose = close[length]
     float pivAtr   = atr[length]
 
     if prob > probThreshold
