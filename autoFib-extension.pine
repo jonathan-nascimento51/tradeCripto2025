@@ -132,3 +132,11 @@ if not na(endPrice) and showLevels
         if showPrices
             txt = valueFormat == "Percent" ? str.tostring(ratio * 100, "#.#") + "%" : str.tostring(lvl, "#.##")
             lastLbl := f_drawLabel(lvl, txt, col, lastLine)
+
+    // Reset references for next bar
+    lastLine := na
+    lastLbl  := na
+else
+    // Clean up drawn objects when levels are hidden or calculation failed
+    line.delete(lastLine)
+    label.delete(lastLbl)

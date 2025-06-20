@@ -8,7 +8,10 @@
 import jonathanmoletta17/LogisticModelLib/1 as lm
 import jonathanmoletta17/SRZoneUtils/1 as sru
 import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/StyleLib/4 as sty
+import jonathanmoletta17/StyleLib/5 as sty
+
+// Retrieve the default style set
+sty.Styles styles = sty.getStyles()
 
 indicator("Support/Resistance Logistic Regression", "SR_LogReg", overlay=true, max_lines_count=500, max_labels_count=300)
 
@@ -38,10 +41,10 @@ trainEpochs = input.int(50, "Train Epochs", minval=1, group="Support/Resistance"
 
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib)
-srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
-srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
-srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
-srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
+srColorRes    = input.color(styles.sr_color_res,    "Resistance (Active Fill)", group="Style – S/R")
+srColorSup    = input.color(styles.sr_color_sup,    "Support (Active Fill)",  group="Style – S/R")
+srColorValid  = input.color(styles.sr_color_valid,  "Validated Zone",       group="Style – S/R")
+srColorBroken = input.color(styles.sr_color_broken, "Broken Zone",          group="Style – S/R")
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")

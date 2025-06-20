@@ -1,9 +1,26 @@
 //@version=6
-// =============================================================================
-//  StyleLib - Centralized chart style constants
-//  ▸ Exports individual constants so indicators share the same visual theme.
-// =============================================================================
 library("StyleLib", overlay=false)
+
+// UDT aggregating all default styling options so scripts can load
+// them through a single function call. Each field mirrors one of the
+// exported constants defined below.
+export type Styles
+    color  sr_color_res
+    color  sr_color_sup
+    color  sr_color_valid
+    color  sr_color_broken
+    color  fib_base_color
+    color  fib_ext_up_col
+    color  fib_ext_dn_col
+    int    fib_width
+    string label_size
+    int    label_offset
+    string anchor_style
+    color  anchor_text_color
+    string anchor_size
+    string label_style
+    color  label_bg
+    color  label_text_color
 
 // ---- Support/Resistance zone colors ----
 export const color SR_COLOR_RES    = color.new(color.red, 92)
@@ -27,3 +44,27 @@ export const string ANCHOR_SIZE    = size.tiny
 export const string LABEL_STYLE    = label.style_label_left
 export const color  LABEL_BG       = color.new(color.blue, 80)
 export const color  LABEL_TEXT_COLOR = color.white
+
+// -----------------------------------------------------------------------------
+// getStyles
+// Returns a Styles instance populated with the current constant values. Scripts
+// can optionally call this to retrieve all settings in one go.
+// -----------------------------------------------------------------------------
+export getStyles() =>
+    // Styles.new(SR_COLOR_RES, SR_COLOR_SUP, SR_COLOR_VALID, SR_COLOR_BROKEN, FIB_BASE_COLOR, FIB_EXT_UP_COL, FIB_EXT_DN_COL, FIB_WIDTH, LABEL_SIZE, LABEL_OFFSET, ANCHOR_STYLE, ANCHOR_TEXT_COLOR, ANCHOR_SIZE, LABEL_STYLE, LABEL_BG, LABEL_TEXT_COLOR)
+    Styles.new(SR_COLOR_RES,
+               SR_COLOR_SUP,
+               SR_COLOR_VALID,
+               SR_COLOR_BROKEN,
+               FIB_BASE_COLOR,
+               FIB_EXT_UP_COL,
+               FIB_EXT_DN_COL,
+               FIB_WIDTH,
+               LABEL_SIZE,
+               LABEL_OFFSET,
+               ANCHOR_STYLE,
+               ANCHOR_TEXT_COLOR,
+               ANCHOR_SIZE,
+               LABEL_STYLE,
+               LABEL_BG,
+               LABEL_TEXT_COLOR)

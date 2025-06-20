@@ -2,7 +2,10 @@
 indicator('Confluence Example', overlay=true)
 
 import jonathanmoletta17/ConfluenceLib/2 as conf
-import jonathanmoletta17/StyleLib/4 as sty
+import jonathanmoletta17/StyleLib/5 as sty
+
+// Load consolidated style settings
+sty.Styles styles = sty.getStyles()
 
 // Example coefficients usually provided via JSON
 coefDistance = input.float(1.0, 'Distance Weight')
@@ -74,4 +77,4 @@ if array.size(srLevels) > 0
                 conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,maxTemporalDiff,coefDistance,coefSignal,coefRetests,coefTemporal,weightScheme,kDist,kTemp)
                 conf.CalculatedWeights cw = conf.calculateConfluence(ci)
                 float score = cw.confluence_weight
-                label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'),style=sty.LABEL_STYLE, color=sty.LABEL_BG,textcolor=sty.LABEL_TEXT_COLOR)
+                label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'),style=styles.label_style, color=styles.label_bg, textcolor=styles.label_text_color)

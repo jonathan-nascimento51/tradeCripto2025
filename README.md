@@ -48,17 +48,17 @@ The file `confluence_example.pine` located in the project root shows how to dete
 }
 ```
 
-Load `examples/confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
+Load `confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
 The library now supports three weighting schemes: `linear`, `exponential` and `logistic`. When using the exponential mode the distance and temporal components are calculated as `exp(-k * value)` where `k` is configurable via the indicator inputs.
 ## Main Scripts
 
-### `examples/combined_indicators.pine`
+### `combined_indicators.pine`
 Demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
 ### `SupportandResistanceLogisticRegression.pine`
 Standalone version of the logistic regression support/resistance indicator used inside `combined_indicators.pine`.
 
-### `examples/confluence_example.pine`
+### `confluence_example.pine`
 Minimal example that shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
 
 ## Helper Libraries
@@ -78,11 +78,11 @@ Centralizes all default colors and chart styling options so indicators share the
 
 ## Using the Libraries
 
-1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/1`).
+1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/2`).
 2. In your indicator or strategy, import the library with the `import` statement:
 
    ```pinescript
-   import jonathanmoletta17/PivotUtils/1 as pv
+   import jonathanmoletta17/PivotUtils/2 as pv
    ```
 
 3. To keep a consistent color scheme, import `StyleLib` and retrieve the predefined styles:

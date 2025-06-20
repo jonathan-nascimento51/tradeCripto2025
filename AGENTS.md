@@ -1,0 +1,333 @@
+AGENTS.md – Sistema Multi‑Agente Joanna Trading AI
+
+Gerado em 20 Jun 2025
+
+1. Visão Geral do Pipeline
+
+Este repositório contém uma suíte de indicadores e bibliotecas em Pine Script v6 voltadas a:
+
+Auto‑detecção de extensões Fibonacci (autoFib-extension.pine)
+
+Confluência entre Suporte/Resistência, Fibonacci e Volatilidade (combined_indicators.pine, confluence_lib.pine)
+
+Modelagem estatística via Regressão Logística (logistic_model_lib.pine, logistic_regression_utils.pine, logistic_training_utils.pine)
+
+Gestão de zonas S/R (sr_zone_utils.pine, pivot_utils.pine)
+
+Temas e estilo unificado (style_lib.pine)
+
+Indicador S/R baseado em regressão (SupportandResistanceLogisticRegression.pine)
+
+A orquestração dos fluxos de análise → geração de prompts → implementação → teste → documentação será delegada a um conjunto de agentes especializados que conversam através de prompts clamados pelo Codex (OpenAI) e outros LLMs.
+
+1.1 Fluxo de Alto Nível
+
+graph TD
+  A[Analyzer Agent] --> B[Prompt‑Builder Agent]
+  B --> C[Codex Implementation Agent]
+  C --> D[Backtest QA Agent]
+  D -->|Métricas| E[Doc Writer Agent]
+  C -->|push| G[Visual Refiner Agent]
+  C -->|push| F[Training Agent]
+  F --> C
+
+2. Mapa de Módulos ⇄ Agentes
+
+Módulo / Arquivo
+
+Núcleo de Lógica
+
+Agente Responsável primário
+
+autoFib-extension.pine
+
+Fibonacci Extensions
+
+impl_codex, visual_refiner
+
+combined_indicators.pine
+
+Confluência S/R + Fib + ATR
+
+impl_codex, visual_refiner
+
+confluence_lib.pine
+
+Cálculo de pesos e zonas
+
+analyzer_code, impl_codex
+
+logistic_* libs
+
+Regressão logística
+
+train_logistic, qa_backtest
+
+pivot_utils.pine
+
+Pivô High/Low
+
+impl_codex
+
+sr_zone_utils.pine
+
+SR Zone lifecycle
+
+analyzer_code, impl_codex
+
+style_lib.pine
+
+Paleta & Estilos
+
+visual_refiner
+
+SupportandResistanceLogisticRegression.pine
+
+Indicador S/R final
+
+qa_backtest, visual_refiner
+
+3. Especificação dos Agentes
+
+3.1 Analyzer Agent (analyzer_code@v1.0)
+
+Persona«Engenheiro de Qualidade Pine Script v6 com background em matemática aplicada.»
+
+Responsabilidades
+
+Escanear código Pine e libs em busca de bugs, anti‑padrões e incoerências.
+
+Emitir relatório de issues classificados (bug, dívida técnica, oportunidade de performance, falta de documentação).
+
+Sugerir testes unitários ou de backtest necessários.
+
+Ferramentas
+
+Acesso ao repositório completo
+
+Linters Pine (pylint‑pine), análise estática interna
+
+Inputs
+
+{
+  "files": ["confluence_lib.pine", "sr_zone_utils.pine"],
+  "max_lines": 400
+}
+
+Output esperado
+
+{
+  "trace_id": "abc‑123",
+  "issues": [
+    { "severity": "high", "file": "confluence_lib.pine", "line": 78,
+      "msg": "Divide by zero risk when tolerance == 0" }
+  ]
+}
+
+Prompt‑template (para LLM interno)
+
+Aja como um engenheiro de QA Pine Script v6.
+Analise o(s) arquivo(s) abaixo e produza:
+1. Lista de bugs críticos
+2. Sugestões de melhoria de performance
+3. Pontos de documentação ausentes
+
+=== INÍCIO DOS ARQUIVOS ===
+{{code_bundle}}
+=== FIM ===
+
+3.2 Prompt‑Builder Agent (prompt_builder@v1.0)
+
+Persona«Arquiteto(a) de prompts para IA, especialista em Engenharia de Prompt programática.»
+
+ResponsabilidadesConverter um issues‑report em prompts precisos para o Codex refatorar ou adicionar funcionalidades.
+
+Ferramentas
+
+Templates reutilizáveis (prompt_templates/)
+
+Histórico de iterações (context window)
+
+Inputs – objeto issues + políticas internas de estilo
+
+Output – string codex_prompt
+
+Prompt‑template meta
+
+Gere um prompt para Codex que:
+• Resolva os issues listados
+• Mantenha estilo funcional
+• Inclua critério de aceitação em 3 bullets
+
+3.3 Codex Implementation Agent (impl_codex@v1.0)
+
+Persona«Programador(a) sênior Pine Script v6 com foco em design modular.»
+
+Responsabilidades
+
+Refatorar ou criar código Pine conforme especificação vinda do Prompt‑Builder.
+
+Manter compatibilidade com TradingView (máx. 500 linhas por script).
+
+Atualizar ou criar testes de exemplo (examples/*.pinetest).
+
+Ferramentas
+
+Acesso de escrita ao repo.
+
+Snippets de boas práticas (/templates/pine).
+
+Prompt‑template
+
+Você é um programador Pine v6.
+Implementar:
+{{specification}}
+
+Requisitos:
+- Sem mudanças visuais fora do StyleLib
+- Usar structs e libs quando possível
+- Incluir exemplo de uso no final
+
+Saída
+
+Pull‑request draft + change_log.md diff.
+
+3.4 Backtest QA Agent (qa_backtest@v1.0)
+
+Persona«Engenheiro(a) de QA Quantitativa.»
+
+Responsabilidades
+
+Rodar backtests automáticos nos scripts combined_indicators.pine e SupportandResistanceLogisticRegression.pine.
+
+Calcular métricas‑chave: Win‑rate, Profit‑factor, Max DD, Sharpe, Latência.
+
+Comparar versus baseline salvo em benchmarks/backtests.json.
+
+Sinalizar regressões ou melhorias.
+
+Ferramentas
+
+TradingView CLI / Pinescript Tester API
+
+Pandas para CSV de trades
+
+Prompt‑template
+
+Execute backtest no script abaixo nos últimos 180 dias BTCUSDT 1h:
+{{script_code}}
+Compare métricas com baseline (json).
+Informe regressões >2 %.
+
+3.5 Training Agent (train_logistic@v1.0)
+
+Persona«Cientista de Dados especializado em regressão logística para séries financeiras.»
+
+Responsabilidades
+
+Extrair features (x1,x2,x3) de pivot history via pivot_utils.
+
+Treinar pesos com gradiente descendente (logistic_training_utils).
+
+Persistir pesos no arquivo logistic_model_lib.pine (vars w0…w3).
+
+Gerar training_report.md.
+
+Inputs
+
+CSV histórico OHLCV
+
+Hiperparâmetros (epochs, lr, regularização)
+
+Outputs
+
+Novo commit do lib + relatório.
+
+3.6 Visual Refiner Agent (visual_refiner@v1.0)
+
+Persona«UI/UX engineer for TradingView charts.»
+
+Responsabilidades
+
+Garantir coerência de cores, espessuras e rótulos via style_lib.pine.
+
+Otimizar legibilidade (overlap, transparência, tooltips).
+
+Fornecer screenshots pré/pós.
+
+Prompt‑template
+
+Revise aspectos visuais do script:
+{{script_name}}
+Mantenha consistência com StyleLib
+Sugira alterações se contraste < 4.5:1
+
+3.7 Doc Writer Agent (doc_writer@v1.0)
+
+Persona«Redator(a) Técnico(a) focado em documentação developer‑friendly.»
+
+Responsabilidades
+
+Atualizar README.md e changelogs após cada ciclo.
+
+Produzir guias de instalação, usage snippets e FAQ.
+
+Incluir seção Math Behind para fórmulas (LaTeX blocks).
+
+Prompt‑template
+
+Gere documentação Markdown para release:
+{{version_tag}}
+Inclua:
+- TL;DR
+- Novas features
+- Fluxo de confluência matematicamente descrito
+
+4. Convenções & Boas Práticas
+
+Prefixo de Agentes: analyzer_, prompt_, impl_, qa_, train_, visual_, doc_
+
+Versionamento: @vMAJOR.MINOR no título do agente.
+
+Traceability: cada agente adiciona trace_id (UUID‑4) em sua saída.
+
+Token Budget: prompts ≤ 550 tokens; respostas ≤ 1300 tokens.
+
+Commits: PRs devem incluir label agent::<name>.
+
+5. Fluxos de Uso Comuns
+
+5.1 Refatorar ConfluenceLib
+
+analyzer_code.check(files=["confluence_lib.pine"])
+prompt_builder.build(issues)
+impl_codex.apply(prompt)
+qa_backtest.run(script="combined_indicators.pine")
+doc_writer.update(version="v2.3.0")
+
+5.2 Treinar novo modelo de regressão
+
+train_logistic.start(dataset="data/BTC_1H.csv")
+impl_codex.inject_weights(lib="logistic_model_lib.pine")
+qa_backtest.run(script="SupportandResistanceLogisticRegression.pine")
+doc_writer.update(version="v2.4.0-model")
+
+6. Glossário Rápido
+
+Termo
+
+Significado
+
+Zone Status
+
+Active, Validated, Broken – ciclo de vida da zona S/R
+
+ATR
+
+Average True Range – escala de volatilidade
+
+Profit Factor
+
+Σ trades vencedores ÷ Σ trades perdedores
+
+Mantra: “Cada agente faz uma coisa, mas faz bem.”Mantenha o AGENTS.md como a fonte única de verdade.
