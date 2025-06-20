@@ -6,6 +6,8 @@
 //  ▸ Melhora o ciclo de vida visual das zonas (Ativa → Validada → Rompida).
 //  ▸ Adiciona tooltips contextuais para zonas validadas e de confluência.
 //  ▸ By: RefinadorVisualZonasPine
+//  ▸ NOTE: This script also incorporates the logistic regression support/resistance
+//          logic from `SupportandResistanceLogisticRegression.pine`.
 // =============================================================================
 import jonathanmoletta17/LogisticRegressionUtils/3 as lr
 import jonathanmoletta17/LogisticTrainingUtils/1 as lt

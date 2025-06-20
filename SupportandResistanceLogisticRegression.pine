@@ -1,247 +1,222 @@
-// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// © fluxchart
-//
 //@version=6
-import Codex/LogisticRegressionUtils/1 as lrUtils
+// =============================================================================
+//  Support & Resistance - Logistic Regression
+//  Standalone indicator derived from the original logistic regression model.
+//  ▸ AVALIAÇÃO: Refinamento visual com foco em clareza e contexto.
+//  ▸ By: RefinadorVisualZonasPine
+// =============================================================================
+import jonathanmoletta17/LogisticRegressionUtils/3 as lr
+import jonathanmoletta17/LogisticTrainingUtils/1 as lt
+import jonathanmoletta17/PivotUtils/2 as pv
+import jonathanmoletta17/StyleLib/4 as sty
 
-const bool DEBUG = false
-const int retestCooldown = 3
+indicator("Support/Resistance Logistic Regression", "SR_LogReg", overlay=true, max_lines_count=500, max_labels_count=300)
 
-indicator("Support and Resistance Logistic Regression | Flux Charts", shorttitle ="S&R (Logistic Regression) | Flux Charts",  overlay = true, max_lines_count = 500, max_labels_count = 500)
+// Declarar cores globalmente (serão atualizadas via StyleLib)
+var color borderColorRes = na
+var color borderColorSup = na
+var color borderColorValid = na
+var color borderColorBroken = na
 
-pivotLength = input.int(14, "Pivot Length", group = "General Configuration", tooltip = "This setting defines the number of bars used to determine a significant high or low for pivot detection.", minval=0,  display = display.none)
-targetRespects = input.int(3, "Target Respects", group = "General Configuration", tooltip = "This input specifies how many times a level must be retested by price action for it to be considered a strong support or resistance level by the underlying model.\nHigher settings will result in less zones detected.", display = display.none)
-probabilityThreshold = input.float(0.7, "Probability Threshold", step=0.05, minval=0.001, maxval=1., group = "General Configuration", tooltip = "This is the minimum probability output from the logistic regression model for a detected pivot to be considered a valid support or resistance level and be plotted on the chart.\nHigher settings will result in less zones rendered.", display = display.none)
-hideFarLines = input.bool(true, "Hide Far Lines", group = "General Configuration")
+// ⁕ Subsistemas
+srEnabled = input.bool(true, "Enable Support/Resistance", group="Subsystems")
 
-showAllPivots = DEBUG ? input.bool(false, "[DBG] Show All Pivots", group = "General Configuration", display = display.none) : false
-showRespectedPivots = DEBUG ? input.bool(false, "[DBG] Show Respected Pivots", group = "General Configuration", display = display.none) : false
-showRegressionPivots = DEBUG ? input.bool(true, "[DBG] Show Regression Pivots", group = "General Configuration", display = display.none) : true
+// ⁕ Parâmetros S/R
+length = input.int(14, "Pivot Length", group="Support/Resistance")
+probThreshold = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Support/Resistance")
+retestCount = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
+volatilityBandATR = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
+rsiThreshold = input.float(50, "RSI Threshold", group="Support/Resistance")
+logW0 = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
+logW1 = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
+logW2 = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
+useTrainedWeights = input.bool(false, "Use Trained Weights", group="Support/Resistance")
+weightsStr = input.string("", "External Weights w0,w1,w2", group="Support/Resistance", tooltip="Opcional: insira pesos separados por vírgula. Deixe em branco para treinar com o histórico.")
+trainRate = input.float(0.05, "Train Learning Rate", minval=0.001, step=0.001, group="Support/Resistance")
+trainEpochs = input.int(50, "Train Epochs", minval=1, group="Support/Resistance")
 
-showPredictionLabels = input.bool(true, "Show Prediction Labels", group = "Style", display = display.none)
-showRetests = input.bool(false, "Show Retests", group = "Style", display = display.none)
-showBreaks = input.bool(false, "Show Breaks", group = "Style", display = display.none)
-lineStyle = input.string("____", "    ", options = ["____", "----", "...."], group = "Style", inline = "s1", display = display.none)
-lineWidth = input.int(3, "Width", [1,2,3], group = "Style", inline = "s1", display = display.none)
-supportColor = input.color(#089981, "Lines & Labels", group = "Style", inline = "s2")
-resistanceColor = input.color(#f23645, "", group = "Style", inline = "s2")
-textColorSupport = input.color(color.white, "Text", group = "Style", inline = "s3")
-textColorResistance = input.color(color.white, "", group = "Style", inline = "s3")
 
-type srLine
-    bool isSupport
+// ⁕ Estilos – S/R (valores padrão via StyleLib)
+srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
+srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
+srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
+srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
+
+// REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
+showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
+
+// ─────────────────────────── Estruturas de Dados (UDT) ─────────────────────
+const int MAX_SR_ZONES = 30
+
+type SR_Zone
+
+    int bar_index
+    line line_upper
+    line line_lower
+    linefill fill_obj
+    label lbl
     float level
-    int startTime
-    int startIndex
-    int endTime
-    int endIndex
-    int timesRespected
+    float probability
+    float x1
+    float x2
+    bool isSupport
+    int retests = 0
+    string status = "Active"
 
-    float detectedRSI
-    float detectedBodySize
-    bool detectedByRegression
-    int latestRetestIndex = 0
-    float detectedPrediction
+var SR_Zone[] sr_zones = array.new<SR_Zone>()
+var float[] trainX1 = array.new<float>()
+var float[] trainX2 = array.new<float>()
+var float[] trainY  = array.new<float>()
 
-    line srLine
-    label predictionLabel
+// Determine which weights will be used for the logistic model. If a comma
+// separated string is provided via input, parse it. Otherwise, attempt to
+// train using the collected pivot history.
+float finalW0 = logW0
+float finalW1 = logW1
+float finalW2 = logW2
+if useTrainedWeights
+    if str.length(weightsStr) > 0
+        string[] parts = str.split(weightsStr, ",")
+        if array.size(parts) >= 3
+            finalW0 := str.tonumber(array.get(parts, 0))
+            finalW1 := str.tonumber(array.get(parts, 1))
+            finalW2 := str.tonumber(array.get(parts, 2))
+    else if array.size(trainY) > 0
+        lt.TrainResult res = lt.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
+        finalW0 := res.w0
+        finalW1 := res.w1
+        finalW2 := res.w2
 
-var allPivots = array.new<srLine>()
-var respectedPivots = array.new<srLine>()
-var regressionPivots = array.new<srLine>()
+// ─────────────────────────── Funções de Gerenciamento ────────────────
+f_pushZone(SR_Zone zone) =>
+    array.push(sr_zones, zone)
+    if array.size(sr_zones) > MAX_SR_ZONES
+        SR_Zone oldZone = array.shift(sr_zones)
+        line.delete(oldZone.line_upper)
+        line.delete(oldZone.line_lower)
+        linefill.delete(oldZone.fill_obj)
+        label.delete(oldZone.lbl)
 
-//#region Logistic Regression
-const float lr = 0.008
+f_clearZones() =>
+    for z in sr_zones
+        line.delete(z.line_upper)
+        line.delete(z.line_lower)
+        linefill.delete(z.fill_obj)
+        label.delete(z.lbl)
+    array.clear(sr_zones)
 
-predict(_isSupport, _level, _rsi, _bodySize) =>
-    float baseBias = 1.0
-    float rsiBias = 1.0
-    float bodySizeBias = 1.0
 
-    typeSize = 0
-    for curRS in allPivots
-        if curRS.isSupport == _isSupport
-            typeSize += 1
-    
-    float _logRes = 0.0
+// --- Lógica de Mercado ---
+ph = pv.pivotHigh(high, length)
+pl = pv.pivotLow(low, length)
+rsi = ta.rsi(close, length)
+atr = ta.atr(length)
 
-    if typeSize > 0
-        for curRS in allPivots
-            if curRS.isSupport != _isSupport
-                continue
+// Cria uma nova zona S/R com base em um pivô e adiciona ao array global
+f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
+    float x1 = rsi > rsiThreshold ? 1 : -1
+    float x2 = math.abs(close - open) > atr ? 1 : -1
+    float prob = lr.logistic(x1, x2, finalW0, finalW1, finalW2)
+    float pivRsi   = rsi[length]
+    float pivOpen  = open[length]
+    float pivClose = close[length]
+    float pivAtr   = atr[length]
+
+    if prob > probThreshold
+        float atr_offset_local = pivAtr * volatilityBandATR
+        float upper = level + atr_offset_local
+        float lower = level - atr_offset_local
+        line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+        line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+        linefill lf = linefill.new(l_u, l_l, color=fillColor)
+        label newLbl = label.new(bar_index, level, "", style=label.style_none)
+        f_pushZone(SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, isSupport))
+
+// Processa reteste e validação de uma zona
+f_handleRetest(SR_Zone zone) =>
+    zone.retests += 1
+    zone.lbl.set_text(str.tostring(zone.retests) + 'x')
+    zone.lbl.set_x(bar_index + 1)
+    zone.lbl.set_y(zone.level)
+    zone.lbl.set_style(label.style_label_left)
+    zone.lbl.set_size(size.tiny)
+    zone.lbl.set_color(color.new(color.gray, 20))
+    zone.lbl.set_textcolor(srColorValid)
+
+    if zone.retests >= retestCount and zone.status != "Validated"
+        zone.status := "Validated"
+        zone.line_upper.set_color(borderColorValid)
+        zone.line_lower.set_color(borderColorValid)
+        zone.line_upper.set_width(2)
+        zone.line_lower.set_width(2)
+        zone.fill_obj.set_color(srColorValid)
+        zone.lbl.set_text("✔")
+        zone.lbl.set_color(color.new(srColorValid, 25))
+        zone.lbl.set_textcolor(color.white)
+        zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
+        array.push(trainX1, zone.x1)
+        array.push(trainX2, zone.x2)
+        array.push(trainY, 1.0)
+
+// Marca uma zona como rompida
+f_markBroken(SR_Zone zone) =>
+    zone.status := "Broken"
+    zone.line_upper.set_color(borderColorBroken)
+    zone.line_lower.set_color(borderColorBroken)
+    zone.line_upper.set_style(line.style_dashed)
+    zone.line_lower.set_style(line.style_dashed)
+    zone.fill_obj.set_color(srColorBroken)
+    zone.line_upper.set_extend(extend.none)
+    zone.line_lower.set_extend(extend.none)
+    zone.line_upper.set_x2(bar_index)
+    zone.line_lower.set_x2(bar_index)
+    zone.lbl.set_text("B")
+    zone.lbl.set_textcolor(srColorBroken)
+    zone.lbl.set_color(color.new(color.gray, 80))
+    zone.lbl.set_tooltip("Zona rompida.")
+    if zone.retests < retestCount
+        array.push(trainX1, zone.x1)
+        array.push(trainX2, zone.x2)
+        array.push(trainY, 0.0)    
+
+// --- Estado Global da Origem do Pivô ---
+// Flags para marcar se um pivô foi formado na barra atual
+bool isPivotHighOrigin = not na(ph) and na(pv.pivotHigh(high[1], length))
+bool isPivotLowOrigin  = not na(pl) and na(pv.pivotLow(low[1], length))
+
+// --- Lógica de Suporte / Resistência ---
+if srEnabled
+    borderColorRes := color.new(srColorRes, 75)
+    borderColorSup := color.new(srColorSup, 75)
+    borderColorValid := color.new(srColorValid, 50)
+    borderColorBroken := color.new(srColorBroken, 85)
+
+    if not na(ph)
+        f_createZone(ph, false, srColorRes, borderColorRes)
+
+    if not na(pl)
+        f_createZone(pl, true, srColorSup, borderColorSup)
+
+    for zone in sr_zones
+        if zone.status != "Broken"
+            bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
+            bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
             
-            isRespected = curRS.timesRespected >= targetRespects ? 1.0 : -1.0
-            p = lrUtils.logistic(curRS.detectedRSI, curRS.detectedBodySize, baseBias, rsiBias, bodySizeBias)
+            if isRetest
+                f_handleRetest(zone)
 
+            if isBroken
+                f_markBroken(zone)
+else
+    // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
+    isPivotHighOrigin := false
+    isPivotLowOrigin := false
 
-            loss = lrUtils.logLoss(isRespected, p)
-
-            rsiBias -= lr * (p + loss) * curRS.detectedRSI
-            bodySizeBias -= lr * (p + loss) * curRS.detectedBodySize
-
-            _logRes := lrUtils.logistic(_rsi, _bodySize, baseBias, rsiBias, bodySizeBias)
-    
-    _logRes
-//#endregion
-
-//#region Time By Bar
-var timeByBar = array.new<int>()
-if barstate.isconfirmed
-    if timeByBar.size() == 0
-        while timeByBar.size() != bar_index
-            timeByBar.push(0)
-    timeByBar.push(time)
-
-getTimeByBar (barIndex) =>
-    if timeByBar.size() <= barIndex
-        time
-    else
-        timeByBar.get(barIndex)
-//#endregion
-
-pivotHigh = ta.pivothigh(pivotLength, pivotLength)
-pivotLow = ta.pivotlow(pivotLength, pivotLength)
-
-rsi = ta.rsi(close, pivotLength)
-rsi := nz(rsi, 0)
-bodySize = math.abs(close - open)
-
-pivotTime = time[pivotLength]
-pivotIndex = bar_index[pivotLength]
-pivotRSI = rsi[pivotLength]
-pivotBodySize = bodySize[pivotLength]
-
-atr = ta.atr(pivotLength)
-
-if (not na(pivotHigh))
-    _pivotRSIBinary = pivotRSI > 50 ? 1 : -1
-    _pivotBodySizeBinary = pivotBodySize > atr ? 1 : -1
-    newPivot = srLine.new(false, pivotHigh, pivotTime, pivotIndex, na, na, 0, _pivotRSIBinary, _pivotBodySizeBinary)
-    allPivots.push(newPivot)
-    predVal = predict(false, pivotHigh, _pivotRSIBinary, _pivotBodySizeBinary)
-    //label.new(pivotIndex, high, str.tostring(predVal))
-    if predVal >= probabilityThreshold
-        newPivot.detectedByRegression := true
-        newPivot.detectedPrediction := predVal
-        regressionPivots.push(newPivot)
-
-if (not na(pivotLow))
-    _pivotRSIBinary = pivotRSI > 50 ? 1 : -1
-    _pivotBodySizeBinary = pivotBodySize > atr ? 1 : -1
-    newPivot = srLine.new(true, pivotLow, pivotTime, pivotIndex, na, na, 0, _pivotRSIBinary, _pivotBodySizeBinary)
-    allPivots.push(newPivot)
-    predVal = predict(true, pivotLow, _pivotRSIBinary, _pivotBodySizeBinary)
-    if predVal >= probabilityThreshold
-        newPivot.detectedByRegression := true
-        newPivot.detectedPrediction := predVal
-        regressionPivots.push(newPivot)
-
-updateSRLine (srLine sr) =>
-    _retest = false
-    _break = false
-    if na(sr.endIndex)
-        if sr.isSupport
-            if low < sr.level
-                if close > sr.level
-                    if sr.detectedByRegression and bar_index > sr.latestRetestIndex + retestCooldown
-                        _retest := true
-                        sr.latestRetestIndex := bar_index
-                        if showRetests
-                            label.new(time, sr.level, "R", xloc = xloc.bar_time, yloc = yloc.belowbar, textcolor = textColorSupport, color = supportColor, style = label.style_label_up,  size=size.tiny)
-                    sr.timesRespected += 1
-                    if sr.timesRespected == targetRespects
-                        respectedPivots.push(sr)
-                else
-                    if sr.detectedByRegression
-                        _break := true
-                        if showBreaks
-                            label.new(time, sr.level, "B", xloc = xloc.bar_time, yloc = yloc.abovebar, textcolor = color.white, color = color.blue, style = label.style_label_down,  size=size.tiny)
-                    sr.endIndex := bar_index
-                    sr.endTime := time
-        else
-            if high > sr.level
-                if close < sr.level
-                    if sr.detectedByRegression and bar_index > sr.latestRetestIndex + retestCooldown
-                        _retest := true
-                        sr.latestRetestIndex := bar_index
-                        if showRetests
-                            label.new(time, sr.level, "R", xloc = xloc.bar_time, yloc = yloc.abovebar, textcolor = textColorResistance, color = resistanceColor, style = label.style_label_down,  size=size.tiny)
-                    sr.timesRespected += 1
-                    if sr.timesRespected == targetRespects
-                        respectedPivots.push(sr)
-                else
-                    if sr.detectedByRegression
-                        _break := true
-                        if showBreaks
-                            label.new(time, sr.level, "B", xloc = xloc.bar_time, yloc = yloc.belowbar, textcolor = color.white, color = color.blue, style = label.style_label_up,  size=size.tiny)
-                    sr.endIndex := bar_index
-                    sr.endTime := time
-    [_retest, _break]
-
-destroySRLine (srLine sr) =>
-    line.delete(sr.srLine)
-    sr.srLine := na
-    label.delete(sr.predictionLabel)
-    sr.predictionLabel := na
-
-renderSRLine (srLine sr, string renderType) =>
-    _shouldRender = true
-    if hideFarLines and na(sr.endTime) and (math.abs(close - sr.level) > atr * 7)
-        _shouldRender := false
-    if _shouldRender
-        _endTime = nz(sr.endTime, time)
-        _endIndex = nz(sr.endIndex, bar_index)
-        renderColor = sr.isSupport ? color.green : color.red
-        if renderType == "Respected"
-            renderColor := sr.isSupport ? color.yellow : color.purple
-        if renderType == "Regression"
-            renderColor := sr.isSupport ? supportColor : resistanceColor
-        
-        if na(sr.srLine)
-            sr.srLine := line.new(sr.startTime, sr.level, _endTime, sr.level, xloc = xloc.bar_time, extend = extend.both, color = renderColor, width = lineWidth, style = lineStyle == "----" ? line.style_dashed : lineStyle == "____" ? line.style_solid : line.style_dotted)
-            if showPredictionLabels
-                if not sr.isSupport
-                    sr.predictionLabel := label.new(sr.startTime, sr.level, str.tostring(sr.detectedPrediction * 100, format.percent), xloc = xloc.bar_time, textcolor = resistanceColor, color = color.new(color.white, 100), style = label.style_label_down)
-                else
-                    sr.predictionLabel := label.new(sr.startTime, sr.level, str.tostring(sr.detectedPrediction * 100, format.percent), xloc = xloc.bar_time, textcolor = supportColor, color = color.new(color.white, 100), style = label.style_label_up)
-            sr.predictionLabel.set_x(na(sr.endIndex) ? getTimeByBar(_endIndex) : getTimeByBar((sr.startIndex + _endIndex) / 2))
-        else
-            sr.srLine.set_x2(_endTime)
-            if showPredictionLabels
-                sr.predictionLabel.set_x(na(sr.endIndex) ? getTimeByBar(_endIndex) : getTimeByBar((sr.startIndex + _endIndex) / 2))
-    else
-        destroySRLine(sr)
-    true
-
-_supportRetestDetected = false
-_supportBreakDetected = false
-_resistanceRetestDetected = false
-_resistanceBreakDetected = false
-
-if barstate.isconfirmed
-    for curSR in allPivots
-        [_retest, _break] = updateSRLine(curSR)
-        if curSR.isSupport
-            _supportRetestDetected := _retest ? true : _supportRetestDetected
-            _supportBreakDetected := _break ? true : _supportBreakDetected
-        else
-            _resistanceRetestDetected := _retest ? true : _resistanceRetestDetected
-            _resistanceBreakDetected := _break ? true : _resistanceBreakDetected
-        if showAllPivots
-            destroySRLine(curSR)
-            renderSRLine(curSR, "All")
-
-if barstate.islast
-    if showRespectedPivots
-        for curSR in respectedPivots
-            destroySRLine(curSR)
-            renderSRLine(curSR, "Respected")
-    if showRegressionPivots
-        for curSR in regressionPivots
-            destroySRLine(curSR)
-            renderSRLine(curSR, "Regression")
-
-alertcondition(_supportRetestDetected, "Support Retest")
-alertcondition(_resistanceRetestDetected, "Resistance Retest")
-alertcondition(_supportBreakDetected, "Support Break")
-alertcondition(_resistanceBreakDetected, "Resistance Break")
+// --- Plotagem dos Marcadores de Pivô ---
+// Só plota na barra de formação do pivô
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na, 
+          title="PH Marker", style=shape.triangledown, location=location.absolute, 
+          color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na, 
+          title="PL Marker", style=shape.triangleup, location=location.absolute, 
+          color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
