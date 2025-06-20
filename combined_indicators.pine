@@ -30,6 +30,10 @@ length = input.int(14, "Pivot Length", group="Support/Resistance")
 probThreshold = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Support/Resistance")
 retestCount = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
 volatilityBandATR = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
+rsiThreshold = input.float(50, "RSI Threshold", group="Support/Resistance")
+logW0 = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
+logW1 = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
+logW2 = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
 
 // ⁕ Parâmetros de Confluência
 confThresholdATR = input.float(0.25, "Confluence ATR Threshold", group="Confluence Engine")
@@ -63,7 +67,7 @@ const int MAX_FIB_LEVELS = 20
 const int MAX_CONF_BOXES = 40
 
 type SR_Zone
-    int id
+
     int bar_index
     line line_upper
     line line_lower
@@ -126,6 +130,59 @@ pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
 
+// Cria uma nova zona S/R com base em um pivô e adiciona ao array global
+f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
+    float prob = lr.logistic(rsi > rsiThreshold ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, logW0, logW1, logW2)
+    if prob > probThreshold
+        float atr_offset_local = atr * volatilityBandATR
+        float upper = level + atr_offset_local
+        float lower = level - atr_offset_local
+        line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+        line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+        linefill lf = linefill.new(l_u, l_l, color=fillColor)
+        label newLbl = label.new(bar_index, level, "", style=label.style_none)
+        f_pushZone(SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, isSupport))
+
+// Processa reteste e validação de uma zona
+f_handleRetest(SR_Zone zone) =>
+    zone.retests += 1
+    zone.lbl.set_text(str.tostring(zone.retests) + 'x')
+    zone.lbl.set_x(bar_index + 1)
+    zone.lbl.set_y(zone.level)
+    zone.lbl.set_style(label.style_label_left)
+    zone.lbl.set_size(size.tiny)
+    zone.lbl.set_color(color.new(color.gray, 20))
+    zone.lbl.set_textcolor(srColorValid)
+
+    if zone.retests >= retestCount and zone.status != "Validated"
+        zone.status := "Validated"
+        zone.line_upper.set_color(borderColorValid)
+        zone.line_lower.set_color(borderColorValid)
+        zone.line_upper.set_width(2)
+        zone.line_lower.set_width(2)
+        zone.fill_obj.set_color(srColorValid)
+        zone.lbl.set_text("✔")
+        zone.lbl.set_color(color.new(srColorValid, 25))
+        zone.lbl.set_textcolor(color.white)
+        zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
+
+// Marca uma zona como rompida
+f_markBroken(SR_Zone zone) =>
+    zone.status := "Broken"
+    zone.line_upper.set_color(borderColorBroken)
+    zone.line_lower.set_color(borderColorBroken)
+    zone.line_upper.set_style(line.style_dashed)
+    zone.line_lower.set_style(line.style_dashed)
+    zone.fill_obj.set_color(srColorBroken)
+    zone.line_upper.set_extend(extend.none)
+    zone.line_lower.set_extend(extend.none)
+    zone.line_upper.set_x2(bar_index)
+    zone.line_lower.set_x2(bar_index)
+    zone.lbl.set_text("B")
+    zone.lbl.set_textcolor(srColorBroken)
+    zone.lbl.set_color(color.new(color.gray, 80))
+    zone.lbl.set_tooltip("Zona rompida.")
+
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
 bool isPivotHighOrigin = not na(ph) and na(pv.pivotHigh(high[1], length))
@@ -133,34 +190,16 @@ bool isPivotLowOrigin  = not na(pl) and na(pv.pivotLow(low[1], length))
 
 // --- Lógica de Suporte / Resistência ---
 if srEnabled
-    var float atr_offset = atr * volatilityBandATR
-
     borderColorRes := color.new(srColorRes, 75)
     borderColorSup := color.new(srColorSup, 75)
     borderColorValid := color.new(srColorValid, 50)
     borderColorBroken := color.new(srColorBroken, 85)
 
     if not na(ph)
-        float prob = lr.logistic(rsi > 50 ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, 1.0, 1.0, 1.0)
-        if prob > probThreshold
-            float upper = ph + atr_offset
-            float lower = ph - atr_offset
-            line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColorRes, extend=extend.right, style=line.style_solid, width=1)
-            line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColorRes, extend=extend.right, style=line.style_solid, width=1)
-            linefill lf = linefill.new(l_u, l_l, color=srColorRes)
-            label newLbl = label.new(bar_index, ph, "", style=label.style_none)
-            f_pushZone(SR_Zone.new(time, bar_index, l_u, l_l, lf, newLbl, ph, prob, false))
+        f_createZone(ph, false, srColorRes, borderColorRes)
 
     if not na(pl)
-        float prob = lr.logistic(rsi > 50 ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, 1.0, 1.0, 1.0)
-        if prob > probThreshold
-            float upper = pl + atr_offset
-            float lower = pl - atr_offset
-            line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColorSup, extend=extend.right, style=line.style_solid, width=1)
-            line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColorSup, extend=extend.right, style=line.style_solid, width=1)
-            linefill lf = linefill.new(l_u, l_l, color=srColorSup)
-            label newLbl = label.new(bar_index, pl, "", style=label.style_none)
-            f_pushZone(SR_Zone.new(time, bar_index, l_u, l_l, lf, newLbl, pl, prob, true))
+        f_createZone(pl, true, srColorSup, borderColorSup)
 
     for zone in sr_zones
         if zone.status != "Broken"
@@ -168,41 +207,10 @@ if srEnabled
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
             
             if isRetest
-                zone.retests += 1
-                zone.lbl.set_text(str.tostring(zone.retests) + 'x')
-                zone.lbl.set_x(bar_index + 1)
-                zone.lbl.set_y(zone.level)
-                zone.lbl.set_style(label.style_label_left)
-                zone.lbl.set_size(size.tiny)
-                zone.lbl.set_color(color.new(color.gray, 20))
-                zone.lbl.set_textcolor(srColorValid)
+                f_handleRetest(zone)
 
-                if zone.retests >= retestCount and zone.status != "Validated"
-                    zone.status := "Validated"
-                    zone.line_upper.set_color(borderColorValid)
-                    zone.line_lower.set_color(borderColorValid)
-                    zone.line_upper.set_width(2)
-                    zone.line_lower.set_width(2)
-                    zone.fill_obj.set_color(srColorValid)
-                    zone.lbl.set_text("✔")
-                    zone.lbl.set_color(color.new(srColorValid, 25))
-                    zone.lbl.set_textcolor(color.white)
-                    zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
             if isBroken
-                zone.status := "Broken"
-                zone.line_upper.set_color(borderColorBroken)
-                zone.line_lower.set_color(borderColorBroken)
-                zone.line_upper.set_style(line.style_dashed)
-                zone.line_lower.set_style(line.style_dashed)
-                zone.fill_obj.set_color(srColorBroken)
-                zone.line_upper.set_extend(extend.none)
-                zone.line_lower.set_extend(extend.none)
-                zone.line_upper.set_x2(bar_index)
-                zone.line_lower.set_x2(bar_index)
-                zone.lbl.set_text("B")
-                zone.lbl.set_textcolor(srColorBroken)
-                zone.lbl.set_color(color.new(color.gray, 80))
-                zone.lbl.set_tooltip("Zona rompida.")
+                f_markBroken(zone)
 else
     // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
     isPivotHighOrigin := false

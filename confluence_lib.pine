@@ -40,18 +40,18 @@ export type CalculatedWeights
 // Executa todo o fluxo de cálculo.
 export method calculateConfluence(ConfluenceInput input) =>
     // --- Passo 1: Calcular as métricas base ---
-    var float dist_abs = math.abs(input.fib_price - input.sr_price)
-    var float dist_pct = input.atr > 0 ? dist_abs / input.atr : 0
-    var int temp_diff = math.abs(input.fib_bar_index - input.sr_bar_index)
+    float dist_abs = math.abs(input.fib_price - input.sr_price)
+    float dist_pct = input.atr > 0 ? dist_abs / input.atr : 0
+    int temp_diff = math.abs(input.fib_bar_index - input.sr_bar_index)
 
     // --- Passo 2: Calcular os pesos intermediários ---
-    var float dist_w = math.max(0, 1 - dist_pct / input.distance_threshold)
-    var float signal_w = input.sr_pred_probability
-    var float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
-    var float temporal_w = input.max_temporal_diff > 0 ? math.max(0, 1 - temp_diff / float(input.max_temporal_diff)) : 0
+    float dist_w = math.max(0, 1 - dist_pct / input.distance_threshold)
+    float signal_w = input.sr_pred_probability
+    float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
+    float temporal_w = input.max_temporal_diff > 0 ? math.max(0, 1 - temp_diff / float(input.max_temporal_diff)) : 0
 
     // --- Passo 3: Calcular a pontuação de confluência final ---
-    var float final_weight = (dist_w * input.w1) + (signal_w * input.w2) + (retests_w * input.w3) + (temporal_w * input.w4)
+    float final_weight = (dist_w * input.w1) + (signal_w * input.w2) + (retests_w * input.w3) + (temporal_w * input.w4)
 
     // --- Passo 4: Retornar todos os resultados em um objeto estruturado ---
     CalculatedWeights.new(dist_abs, dist_pct, temp_diff, dist_w, signal_w, retests_w, temporal_w, final_weight)
