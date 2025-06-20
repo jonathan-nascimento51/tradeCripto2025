@@ -34,6 +34,7 @@ probThreshold = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Su
 retestCount = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
 volatilityBandATR = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
 rsiThreshold = input.float(50, "RSI Threshold", group="Support/Resistance")
+retestProbWeight = input.float(0.05, "Prob Increase per Retest", step=0.01, group="Support/Resistance")
 logW0 = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
 logW1 = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
 logW2 = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
@@ -60,12 +61,7 @@ srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="
 srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // ⁕ Estilos – Fibonacci (padrões vindos de StyleLib)
-fibBaseColor  = input.color(sty.FIB_BASE_COLOR,  "≤1× Base color", group="Style – Fib")
-fibExtUpCol   = input.color(sty.FIB_EXT_UP_COL,  ">1× Up color", group="Style – Fib")
-fibExtDnCol   = input.color(sty.FIB_EXT_DN_COL,  ">1× Down color", group="Style – Fib")
-fibWidth      = input.int(sty.FIB_WIDTH,         "Line width", minval=1, maxval=4, group="Style – Fib")
-labelSizeOpt  = input.string(sty.LABEL_SIZE,     "Label size", options=["tiny", "small", "normal"], group="Style – Fib")
-labelOffset   = input.int(sty.LABEL_OFFSET,      "Label offset (bars)", minval=0, group="Style – Fib")
+labelOffset = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -91,18 +87,21 @@ var FibLevel[] fib_levels = array.new<FibLevel>()
 var box[] confBoxes = array.new_box()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
+var float[] trainX3 = array.new<float>()
 var float[] trainY  = array.new<float>()
 // Flag that indicates if the logistic model has been trained for the
 // current set of samples.
 var bool trained = false
 
-f_pushSample(float x1, float x2, float y) =>
+f_pushSample(float x1, float x2, float x3, float y) =>
     array.push(trainX1, x1)
     array.push(trainX2, x2)
+    array.push(trainX3, x3)
     array.push(trainY,  y)
     if array.size(trainY) > MAX_TRAIN_SAMPLES
         array.shift(trainX1)
         array.shift(trainX2)
+        array.shift(trainX3)
         array.shift(trainY)
 
 // Determine which weights will be used for the logistic model. If a comma
@@ -111,6 +110,7 @@ f_pushSample(float x1, float x2, float y) =>
 var float finalW0 = logW0
 var float finalW1 = logW1
 var float finalW2 = logW2
+var float finalW3 = 0.0
 if useTrainedWeights
     if str.length(weightsStr) > 0
         string[] parts = str.split(weightsStr, ",")
@@ -118,18 +118,22 @@ if useTrainedWeights
             finalW0 := str.tonumber(array.get(parts, 0))
             finalW1 := str.tonumber(array.get(parts, 1))
             finalW2 := str.tonumber(array.get(parts, 2))
+            if array.size(parts) >= 4
+                finalW3 := str.tonumber(array.get(parts, 3))
         trained := true
     else if (not trained) and array.size(trainY) > 0
-        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
+        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainX3, trainY, trainRate, trainEpochs)
         finalW0 := res.w0
         finalW1 := res.w1
         finalW2 := res.w2
+        finalW3 := res.w3
         trained := true
 else
     // When not using trained weights, fall back to the user inputs every bar.
     finalW0 := logW0
     finalW1 := logW1
     finalW2 := logW2
+    finalW3 := 0.0
     trained := false
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
@@ -162,7 +166,9 @@ float confThreshPx = atr * confThresholdATR
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
     float x1 = rsi > rsiThreshold ? 1 : -1
     float x2 = math.abs(close - open) > atr ? 1 : -1
-    float prob = lm.logistic(x1, x2, finalW0, finalW1, finalW2)
+    float x3 = volume > volMA ? 1 : -1
+
+    float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
     float pivAtr   = atr[length]
 
     if prob > probThreshold
@@ -173,7 +179,7 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
         line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
         linefill lf = linefill.new(l_u, l_l, color=fillColor)
         label newLbl = label.new(bar_index, level, "", style=label.style_none)
-        sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, isSupport), MAX_SR_ZONES)
+        sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), MAX_SR_ZONES)
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
@@ -198,17 +204,18 @@ if srEnabled
         if zone.status != "Broken"
             bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
-            
+            bool isDominant = math.abs(close - open) > atr or volume > volMA
+
             if isRetest
-                bool validated = sru.f_handleRetest(zone, retestCount, borderColorValid, srColorValid)
+                bool validated = sru.f_handleRetest(zone, retestCount, retestProbWeight, borderColorValid, srColorValid)
                 if validated
-                    f_pushSample(zone.x1, zone.x2, 1.0)
+                    f_pushSample(zone.x1, zone.x2, zone.x3, 1.0)
                     retrainNeeded := true
 
-            if isBroken
+            if isBroken and isDominant
                 bool earlyBreak = sru.f_markBroken(zone, retestCount, borderColorBroken, srColorBroken)
                 if earlyBreak
-                    f_pushSample(zone.x1, zone.x2, 0.0)
+                    f_pushSample(zone.x1, zone.x2, x3, 0.0)
                     retrainNeeded := true
     if retrainNeeded
         trained := false
@@ -234,6 +241,7 @@ var label fibAnchorLowLabel = na
 
 // Só atualiza âncora quando um novo pivô é formado
 if bar_index >= length
+
     if isPivotHighOrigin
         lastHigh := ph
         if showFibAnchors and fibEnabled

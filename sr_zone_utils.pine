@@ -12,6 +12,7 @@ export type SR_Zone
     float probability
     float x1
     float x2
+    float x3
     bool isSupport
     int retests = 0
     string status = "Active"
@@ -46,7 +47,7 @@ export f_clearZones(SR_Zone[] zones) =>
 // Updates retest counters and styling when a zone is touched.
 // Returns true when the zone becomes validated.
 // -----------------------------------------------------------------------------
-export f_handleRetest(SR_Zone zone, int retestCount, color borderColorValid, color srColorValid) =>
+export f_handleRetest(SR_Zone zone, int retestCount, float probStep, color borderColorValid, color srColorValid) =>
     zone.retests += 1
     zone.lbl.set_text(str.tostring(zone.retests) + 'x')
     zone.lbl.set_x(bar_index + 1)
@@ -68,6 +69,7 @@ export f_handleRetest(SR_Zone zone, int retestCount, color borderColorValid, col
         zone.lbl.set_textcolor(color.white)
         zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
         validated := true
+    zone.probability := math.min(1.0, zone.probability + probStep)
     validated
 
 // -----------------------------------------------------------------------------

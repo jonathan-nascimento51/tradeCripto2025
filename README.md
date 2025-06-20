@@ -12,6 +12,11 @@ This repository contains example Pine Script V6 indicators. The new `ConfluenceL
 
 Each component is multiplied by its respective coefficient before being summed into the final score.
 
+## Recent Updates
+
+- Logistic model expanded to consider volume as a third feature.
+- Support/resistance probabilities now increase slightly on each retest (configurable).
+
 ```pinescript
 import ConfluenceLib as conf
 inputData = conf.ConfluenceInput.new(fibLevel,
