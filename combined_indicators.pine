@@ -186,6 +186,8 @@ ph = pv.pivotHigh(high, length)
 pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
+// Precomputa o threshold de confluência em pontos (ATR * fator) uma vez por barra
+float confThreshPx = atr * confThresholdATR
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
@@ -329,7 +331,6 @@ else if not fibEnabled
     label.delete(fibAnchorLowLabel)
 
 if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
-    float confThreshPx = atr * confThresholdATR
     for zone in sr_zones
         if zone.status != "Broken"
             for fib in fib_levels
