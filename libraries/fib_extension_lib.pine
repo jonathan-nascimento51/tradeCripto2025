@@ -1,16 +1,50 @@
 //@version=6
+
+// Utility functions for drawing Fibonacci extension levels
 library("FibExtensionLib", overlay=false)
 
 // Defines the FibLevel structure used to track drawn Fibonacci lines and labels
 export type FibLevel
-    line ln
-    label lbl
-    float level
-    float ratio
-    int bar_index
+    line  ln          // Reference to the drawn Fibonacci line
+    label lbl         // Label associated with the level
+    float level       // Price value of the level
+    float ratio       // Fibonacci ratio used
+    int   bar_index   // Bar index where the line/label were created
 
 // Predefined Fibonacci ratios for extension calculation
 export const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
+
+// -----------------------------------------------------------------------------
+// calcLevel
+// Returns the price level for the given Fibonacci ratio.
+// -----------------------------------------------------------------------------
+export float calcLevel(float lastHigh, float lastLow, float diff, bool isUp, float ratio) =>
+    isUp ? lastHigh + diff * ratio : lastLow - diff * ratio
+
+// -----------------------------------------------------------------------------
+// createLine
+// Draws a single horizontal line for a Fibonacci level.
+// -----------------------------------------------------------------------------
+export line createLine(int barIndex, float y, color lnCol, bool isExt, int width) =>
+    line.new(barIndex, y, barIndex + 1, y,
+             color=lnCol,
+             style=isExt ? line.style_solid : line.style_dotted,
+             width=width,
+             extend=extend.right)
+
+// -----------------------------------------------------------------------------
+// createLabel
+// Places a label near the Fibonacci line with the level price and ratio.
+// -----------------------------------------------------------------------------
+export label createLabel(int barIndex, float y, float ratio, bool leftSide, color lnCol, string lblSize, int lblOffset) =>
+    string lblTxt = str.tostring(ratio * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
+    label.new(barIndex + (leftSide ? lblOffset : -lblOffset), y,
+              text=lblTxt,
+              xloc=xloc.bar_index,
+              style=leftSide ? label.style_label_left : label.style_label_right,
+              color=color.new(lnCol, 80),
+              textcolor=lnCol,
+              size=lblSize)
 
 // -----------------------------------------------------------------------------
 // clearLevels
@@ -33,10 +67,9 @@ export drawLevels(FibLevel[] levels, int barIndex, float lastHigh, float lastLow
     bool isUp = lastHigh > lastLow
     for idx = 0 to array.size(RATIOS) - 1
         float r = array.get(RATIOS, idx)
-        float y = isUp ? lastHigh + diff * r : lastLow - diff * r
+        float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
         bool isExt = r > 1.0
         color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
-        line ln = line.new(barIndex, y, barIndex + 1, y, color=lnCol, style=isExt ? line.style_solid : line.style_dotted, width=width, extend=extend.right)
-        string lblTxt = str.tostring(r * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
-        label lb = label.new(barIndex + (idx % 2 == 0 ? lblOffset : -lblOffset), y, text=lblTxt, xloc=xloc.bar_index, style=idx % 2 == 0 ? label.style_label_left : label.style_label_right, color=color.new(lnCol, 80), textcolor=lnCol, size=lblSize)
+        line ln = createLine(barIndex, y, lnCol, isExt, width)
+        label lb = createLabel(barIndex, y, r, idx % 2 == 0, lnCol, lblSize, lblOffset)
         array.push(levels, FibLevel.new(ln, lb, y, r, barIndex))
