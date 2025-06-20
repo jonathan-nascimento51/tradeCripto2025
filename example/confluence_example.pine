@@ -1,8 +1,8 @@
 //@version=6
 indicator('Confluence Example', overlay=true)
 
-import jonathanmoletta17/ConfluenceLib/2 as conf
-import jonathanmoletta17/StyleLib/5 as sty
+import "../libraries/confluence_lib.pine" as conf
+import "../libraries/style_lib.pine" as sty
 
 // Load consolidated style settings
 sty.Styles styles = sty.getStyles()

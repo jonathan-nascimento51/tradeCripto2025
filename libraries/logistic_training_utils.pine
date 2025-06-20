@@ -1,7 +1,7 @@
 //@version=6
 library("LogisticTrainingUtils", overlay=false)
 
-import jonathanmoletta17/LogisticRegressionUtils/3 as lr
+import "./logistic_regression_utils.pine" as lr
 
 // Result object returned by the training function
 export type TrainResult

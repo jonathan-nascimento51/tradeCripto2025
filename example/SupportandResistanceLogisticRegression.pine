@@ -5,10 +5,10 @@
 //  ▸ AVALIAÇÃO: Refinamento visual com foco em clareza e contexto.
 //  ▸ By: RefinadorVisualZonasPine
 // =============================================================================
-import jonathanmoletta17/LogisticModelLib/1 as lm
-import jonathanmoletta17/SRZoneUtils/1 as sru
-import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/StyleLib/5 as sty
+import "../libraries/logistic_model_lib.pine" as lm
+import "../libraries/sr_zone_utils.pine" as sru
+import "../libraries/pivot_utils.pine" as pv
+import "../libraries/style_lib.pine" as sty
 
 // Retrieve the default style set
 sty.Styles styles = sty.getStyles()

@@ -9,11 +9,11 @@
 //  ▸ NOTE: This script also incorporates the logistic regression support/resistance
 //          logic from `SupportandResistanceLogisticRegression.pine`.
 // =============================================================================
-import jonathanmoletta17/LogisticModelLib/2 as lm
-import jonathanmoletta17/SRZoneUtils/2 as sru
-import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/ConfluenceLib/7 as conf
-import jonathanmoletta17/StyleLib/5 as sty
+import "../libraries/logistic_model_lib.pine" as lm
+import "../libraries/sr_zone_utils.pine" as sru
+import "../libraries/pivot_utils.pine" as pv
+import "../libraries/confluence_lib.pine" as conf
+import "../libraries/style_lib.pine" as sty
 
 // Retrieve centralized styling options. Scripts can still reference the
 // individual constants if desired but using this object keeps the code tidy.
