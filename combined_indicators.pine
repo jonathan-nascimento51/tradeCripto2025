@@ -105,6 +105,7 @@ f_pushSample(float x1, float x2, float x3, float y) =>
     array.push(trainX2, x2)
     array.push(trainX3, x3)
     array.push(trainY,  y)
+
     if array.size(trainY) > MAX_TRAIN_SAMPLES
         array.shift(trainX1)
         array.shift(trainX2)
@@ -118,6 +119,7 @@ var float finalW0 = logW0
 var float finalW1 = logW1
 var float finalW2 = logW2
 var float finalW3 = 0.0
+
 if useTrainedWeights
     if str.length(weightsStr) > 0
         string[] parts = str.split(weightsStr, ",")
@@ -162,11 +164,14 @@ f_clearBoxes() =>
     array.clear(confBoxes)
 
 // --- Lógica de Mercado ---
-ph = pv.pivotHigh(high, length)
-pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
 float volMA = ta.sma(volume, length)
+
+ph = pv.pivotHigh(high, length)
+pl = pv.pivotLow(low, length)
+ph_prev = pv.pivotHigh(high[1], length)
+pl_prev = pv.pivotLow(low[1], length)
 
 // Precomputa o threshold de confluência em pontos (ATR * fator) uma vez por barra
 float confThreshPx = atr * confThresholdATR
@@ -193,9 +198,6 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
-ph_prev = pv.pivotHigh(high[1], length)
-pl_prev = pv.pivotLow(low[1], length)
-
 bool isPivotHighOrigin = not na(ph) and na(ph_prev)
 bool isPivotLowOrigin  = not na(pl) and na(pl_prev)
 

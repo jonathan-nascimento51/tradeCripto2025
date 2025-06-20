@@ -104,11 +104,14 @@ else
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
 // --- Lógica de Mercado ---
-ph = pv.pivotHigh(high, length)
-pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
 float volMA = ta.sma(volume, length)
+
+ph = pv.pivotHigh(high, length)
+pl = pv.pivotLow(low, length)
+ph_prev = pv.pivotHigh(high[1], length)
+pl_prev = pv.pivotLow(low[1], length)
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
@@ -130,8 +133,8 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
-bool isPivotHighOrigin = not na(ph) and na(pv.pivotHigh(high[1], length))
-bool isPivotLowOrigin  = not na(pl) and na(pv.pivotLow(low[1], length))
+bool isPivotHighOrigin = not na(ph) and na(ph_prev)
+bool isPivotLowOrigin  = not na(pl) and na(pl_prev)
 
 // --- Lógica de Suporte / Resistência ---
 if srEnabled
@@ -140,11 +143,8 @@ if srEnabled
     borderColorValid := color.new(srColorValid, 50)
     borderColorBroken := color.new(srColorBroken, 85)
 
-    if not na(ph)
-        f_createZone(ph, false, srColorRes, borderColorRes)
-
-    if not na(pl)
-        f_createZone(pl, true, srColorSup, borderColorSup)
+    f_createZone(ph, false, srColorRes, borderColorRes)
+    f_createZone(pl, true, srColorSup, borderColorSup)
 
     for zone in sr_zones
         if zone.status != "Broken"
