@@ -61,7 +61,14 @@ srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="
 srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // ⁕ Estilos – Fibonacci (padrões vindos de StyleLib)
-labelOffset = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
+fibBaseColor  = input.color(sty.FIB_BASE_COLOR, "Fib Base Color", group="Style – Fibonacci")
+fibExtUpCol   = input.color(sty.FIB_EXT_UP_COL, "Fib Extension Up Color", group="Style – Fibonacci")
+fibExtDnCol   = input.color(sty.FIB_EXT_DN_COL, "Fib Extension Down Color", group="Style – Fibonacci")
+fibWidth      = input.int(sty.FIB_WIDTH, "Fib Line Width", minval=1, group="Style – Fibonacci")
+labelSizeOpt  = input.string(sty.LABEL_SIZE, "Fib Label Size",
+                             options=[size.tiny, size.small, size.normal, size.large, size.huge],
+                             group="Style – Fibonacci")
+labelOffset   = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -159,6 +166,8 @@ ph = pv.pivotHigh(high, length)
 pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
+float volMA = ta.sma(volume, length)
+
 // Precomputa o threshold de confluência em pontos (ATR * fator) uma vez por barra
 float confThreshPx = atr * confThresholdATR
 
@@ -167,7 +176,6 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
     float x1 = rsi > rsiThreshold ? 1 : -1
     float x2 = math.abs(close - open) > atr ? 1 : -1
     float x3 = volume > volMA ? 1 : -1
-    float volMA = ta.sma(volume, length)
 
     float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
     float pivAtr   = atr[length]
@@ -216,7 +224,7 @@ if srEnabled
             if isBroken and isDominant
                 bool earlyBreak = sru.f_markBroken(zone, retestCount, borderColorBroken, srColorBroken)
                 if earlyBreak
-                    f_pushSample(zone.x1, zone.x2, x3, 0.0)
+                    f_pushSample(zone.x1, zone.x2, zone.x3, 0.0)
                     retrainNeeded := true
     if retrainNeeded
         trained := false
