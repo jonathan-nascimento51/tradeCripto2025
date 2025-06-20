@@ -3,7 +3,7 @@
 This repository contains example Pine Script V6 indicators. The new `ConfluenceLib` library provides a utility to calculate confluence weights between overlapping support/resistance and Fibonacci levels.
 
 ## ConfluenceLib
-`ConfluenceLib.pine` exposes a `WeightParams` type and a `calcWeight` function. The score combines multiple factors:
+`ConfluenceLib.pine` exposes two user defined types, `ConfluenceInput` and `CalculatedWeights`, together with the `calculateConfluence()` function. The score combines multiple factors:
 
 - `distance` – price distance between the two levels
 - `signalStrength` – strength of the original signal (0..1)
@@ -14,16 +14,22 @@ Each component is multiplied by its respective coefficient before being summed i
 
 ```pinescript
 import ConfluenceLib as conf
-params = conf.WeightParams.new(distance,
-                               signalStrength,
-                               retests,
-                               temporalDiff,
-                               1.0,  // distance coefficient
-                               1.0,  // signal strength coefficient
-                               1.0,  // retest coefficient
-                               1.0)  // temporal difference coefficient
-score = conf.calcWeight(params)
-```
+inputData = conf.ConfluenceInput.new(fibLevel,
+                                     srLevel,
+                                     srProbability,
+                                     atr,
+                                     fibBar,
+                                     srRetests,
+                                     targetRetests,
+                                     srBar,
+                                     1.0,  // distance threshold
+                                     50,   // max temporal difference
+                                     1.0,  // distance coefficient
+                                     1.0,  // signal strength coefficient
+                                     1.0,  // retest coefficient
+                                     1.0)  // temporal difference coefficient
+conf.CalculatedWeights result = conf.calculateConfluence(inputData)
+score = result.confluence_weight
 
 ## Example
 `ConfluenceExample.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:

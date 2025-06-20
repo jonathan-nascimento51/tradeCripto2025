@@ -9,6 +9,9 @@ coefSignal   = input.float(1.0, 'Signal Strength Weight')
 coefRetests  = input.float(1.0, 'Retests Weight')
 coefTemporal = input.float(1.0, 'Temporal Diff Weight')
 
+atrPeriod = input.int(14, 'ATR Period')
+float atr = ta.atr(atrPeriod)
+
 // Threshold in price percentage for considering overlap
 levelThreshold = input.float(0.002, 'Overlap Threshold %', step=0.001)
 
@@ -39,10 +42,11 @@ for i = 0 to array.size(srLevels)-1
     for j = 0 to array.size(fibLevels)-1
         fibLevel = array.get(fibLevels, j)
         fibTime  = array.get(fibTimes, j)
-        distance = math.abs(srLevel - fibLevel)/close
-        if distance <= levelThreshold
-            strength = 1.0 - distance/levelThreshold
-            barsDiff = math.abs(srTime - fibTime)
-            params = conf.WeightParams.new(distance, strength, 1, barsDiff, coefDistance, coefSignal, coefRetests, coefTemporal)
-            score = conf.calcWeight(params)
+        float distAbs  = math.abs(srLevel - fibLevel)
+        float distPct  = distAbs / close
+        if distPct <= levelThreshold
+            float strength = 1.0 - distPct / levelThreshold
+            conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,50,coefDistance,coefSignal,coefRetests,coefTemporal)
+            conf.CalculatedWeights cw = conf.calculateConfluence(ci)
+            float score = cw.confluence_weight
             label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'))
