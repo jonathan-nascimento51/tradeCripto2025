@@ -1,0 +1,7 @@
+//@version=6
+indicator('Confluence Lib Test', overlay=false)
+import "../libraries/confluence_lib.pine" as conf
+
+conf.ConfluenceInput ci = conf.ConfluenceInput.new(close, close*1.01, 0.8, ta.atr(14), bar_index, 2, 3, bar_index-10, 0.02, 50, 1,1,1,1, 'linear', 1,1)
+conf.CalculatedWeights cw = conf.calculateConfluence(ci)
+plot(cw.confluence_weight, title='Conf Weight')

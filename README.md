@@ -97,3 +97,22 @@ Centralizes all default colors and chart styling options so indicators share the
 
 ## Ajustes Visuais e Customização
 - Agora é possível parametrizar a largura dos boxes de confluência através do input "Confluence Box Width" no indicador. Essa mudança visa melhorar a adaptação visual conforme o perfil do ativo.
+
+## Library Test Scripts
+To validate each helper library independently, open any of the files under `tests/` in the TradingView Pine editor.
+
+1. **Load a test file**
+   - In TradingView, open the **Pine Editor** and create a new blank script.
+   - Copy the contents of one of the `tests/*.pine` files into the editor.
+   - Save and add the indicator to the chart.
+2. **Expected output**
+   - `logistic_model_test.pine` plots the training loss of a toy dataset and shows a label with the probability for the first sample.
+   - `pivot_utils_test.pine` draws triangle markers at detected pivot highs and lows.
+   - `sr_zone_utils_test.pine` creates a demo zone on the first bar and updates its state when price retests or breaks it.
+   - `sr_manager_lib_test.pine` adds a zone whenever a pivot high forms using the manager helper.
+   - `confluence_lib_test.pine` plots the calculated confluence weight as a line.
+   - `fib_extension_lib_test.pine` draws basic Fibonacci levels using the style defaults.
+   - `conf_box_lib_test.pine` creates a single box and then clears it at the last bar.
+   - `style_lib_test.pine` simply plots the close series using one of the palette colors.
+
+Running these scripts helps confirm that each exported function executes without errors and produces visible output on the chart.

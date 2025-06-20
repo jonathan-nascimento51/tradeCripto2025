@@ -1,0 +1,11 @@
+//@version=6
+indicator('Conf Box Lib Test', overlay=true)
+import "../libraries/conf_box_lib.pine" as cb
+
+var box[] boxes = array.new<box>()
+if barstate.isfirst
+    box b = box.new(bar_index, high, bar_index + 1, low, border_color=color.blue)
+    cb.pushBox(boxes, b, 5)
+
+if barstate.islast
+    cb.clearBoxes(boxes)

@@ -1,0 +1,10 @@
+//@version=6
+indicator('Fib Extension Lib Test', overlay=true)
+import "../libraries/fib_extension_lib.pine" as fib
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+
+var fib.FibLevel[] levels = array.new<fib.FibLevel>()
+if barstate.isfirst
+    fib.drawLevels(levels, bar_index, high, low, styles.fib_base_color, styles.fib_ext_up_col, styles.fib_ext_dn_col, styles.fib_width, styles.label_size, styles.label_offset)
