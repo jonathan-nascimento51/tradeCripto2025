@@ -8,6 +8,7 @@
 //  ▸ By: RefinadorVisualZonasPine
 // =============================================================================
 import jonathanmoletta17/LogisticRegressionUtils/3 as lr
+import jonathanmoletta17/LogisticTrainingUtils/1 as lt
 import jonathanmoletta17/PivotUtils/2 as pv
 import jonathanmoletta17/ConfluenceLib/5 as conf
 import jonathanmoletta17/StyleLib/4 as sty
@@ -34,6 +35,10 @@ rsiThreshold = input.float(50, "RSI Threshold", group="Support/Resistance")
 logW0 = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
 logW1 = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
 logW2 = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
+useTrainedWeights = input.bool(false, "Use Trained Weights", group="Support/Resistance")
+weightsStr = input.string("", "External Weights w0,w1,w2", group="Support/Resistance", tooltip="Opcional: insira pesos separados por vírgula. Deixe em branco para treinar com o histórico.")
+trainRate = input.float(0.05, "Train Learning Rate", minval=0.001, step=0.001, group="Support/Resistance")
+trainEpochs = input.int(50, "Train Epochs", minval=1, group="Support/Resistance")
 
 // ⁕ Parâmetros de Confluência
 confThresholdATR = input.float(0.25, "Confluence ATR Threshold", group="Confluence Engine")
@@ -75,6 +80,8 @@ type SR_Zone
     label lbl
     float level
     float probability
+    float x1
+    float x2
     bool isSupport
     int retests = 0
     string status = "Active"
@@ -89,6 +96,28 @@ type FibLevel
 var SR_Zone[] sr_zones = array.new<SR_Zone>()
 var FibLevel[] fib_levels = array.new<FibLevel>()
 var box[] confBoxes = array.new_box()
+var float[] trainX1 = array.new<float>()
+var float[] trainX2 = array.new<float>()
+var float[] trainY  = array.new<float>()
+
+// Determine which weights will be used for the logistic model. If a comma
+// separated string is provided via input, parse it. Otherwise, attempt to
+// train using the collected pivot history.
+float finalW0 = logW0
+float finalW1 = logW1
+float finalW2 = logW2
+if useTrainedWeights
+    if str.length(weightsStr) > 0
+        string[] parts = str.split(weightsStr, ",")
+        if array.size(parts) >= 3
+            finalW0 := str.tonumber(array.get(parts, 0))
+            finalW1 := str.tonumber(array.get(parts, 1))
+            finalW2 := str.tonumber(array.get(parts, 2))
+    else if array.size(trainY) > 0
+        lt.TrainResult res = lt.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
+        finalW0 := res.w0
+        finalW1 := res.w1
+        finalW2 := res.w2
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
 f_pushZone(SR_Zone zone) =>
@@ -132,16 +161,23 @@ atr = ta.atr(length)
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
-    float prob = lr.logistic(rsi > rsiThreshold ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, logW0, logW1, logW2)
+    float x1 = rsi > rsiThreshold ? 1 : -1
+    float x2 = math.abs(close - open) > atr ? 1 : -1
+    float prob = lr.logistic(x1, x2, finalW0, finalW1, finalW2)
+    float pivRsi   = rsi[length]
+    float pivOpen  = open[length]
+    float pivClose = close[length]
+    float pivAtr   = atr[length]
+
     if prob > probThreshold
-        float atr_offset_local = atr * volatilityBandATR
+        float atr_offset_local = pivAtr * volatilityBandATR
         float upper = level + atr_offset_local
         float lower = level - atr_offset_local
         line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
         line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
         linefill lf = linefill.new(l_u, l_l, color=fillColor)
         label newLbl = label.new(bar_index, level, "", style=label.style_none)
-        f_pushZone(SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, isSupport))
+        f_pushZone(SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, isSupport))
 
 // Processa reteste e validação de uma zona
 f_handleRetest(SR_Zone zone) =>
@@ -165,6 +201,9 @@ f_handleRetest(SR_Zone zone) =>
         zone.lbl.set_color(color.new(srColorValid, 25))
         zone.lbl.set_textcolor(color.white)
         zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
+        array.push(trainX1, zone.x1)
+        array.push(trainX2, zone.x2)
+        array.push(trainY, 1.0)
 
 // Marca uma zona como rompida
 f_markBroken(SR_Zone zone) =>
@@ -182,6 +221,10 @@ f_markBroken(SR_Zone zone) =>
     zone.lbl.set_textcolor(srColorBroken)
     zone.lbl.set_color(color.new(color.gray, 80))
     zone.lbl.set_tooltip("Zona rompida.")
+    if zone.retests < retestCount
+        array.push(trainX1, zone.x1)
+        array.push(trainX2, zone.x2)
+        array.push(trainY, 0.0)    
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
