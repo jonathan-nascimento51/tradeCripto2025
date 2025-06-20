@@ -2,9 +2,12 @@
 library("LogisticRegressionUtils", overlay=false)
 
 // Basic logistic function used by the model
-export logistic(float x1, float x2, float w0, float w1, float w2) =>
+// Extended logistic function supporting three features. The original
+// implementation only considered `x1` and `x2`. The additional `x3`
+// parameter allows incorporating factors such as volume into the model.
+export logistic(float x1, float x2, float x3, float w0, float w1, float w2, float w3) =>
     // Calculate the raw linear combination
-    float z = w0 + w1 * x1 + w2 * x2
+    float z = w0 + w1 * x1 + w2 * x2 + w3 * x3
 
     // Clamp "z" to a safe range before applying exp to avoid overflow
     float zClamped = math.min(math.max(z, -50), 50)
