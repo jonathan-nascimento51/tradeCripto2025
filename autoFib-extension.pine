@@ -29,8 +29,31 @@ upperThresh  = input.float(0.236, "Upper Ratio Threshold")
 lowerThresh  = input.float(1.0,   "Lower Ratio Threshold")
 
 // Fibonacci ratios and colors
-fibRatios = array.from(0.0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.618)
-fibColors = array.from(color.new(color.blue,     alphaBg),color.new(color.teal,     alphaBg),color.new(color.green,    alphaBg),color.new(color.yellow,   alphaBg),color.new(color.orange,   alphaBg),color.new(color.fuchsia,  alphaBg),color.new(color.gray,     alphaBg),color.new(color.red,      alphaBg))
+var float[] fibRatios = array.new<float>()
+var color[] fibColors = array.new<color>()
+var int prevAlphaBg = na
+
+// Allocate the arrays only once and rebuild when transparency changes
+if barstate.isfirst or prevAlphaBg != alphaBg
+    array.clear(fibRatios)
+    array.clear(fibColors)
+    array.push(fibRatios, 0.0)
+    array.push(fibRatios, 0.236)
+    array.push(fibRatios, 0.382)
+    array.push(fibRatios, 0.5)
+    array.push(fibRatios, 0.618)
+    array.push(fibRatios, 0.786)
+    array.push(fibRatios, 1.0)
+    array.push(fibRatios, 1.618)
+    array.push(fibColors, color.new(color.blue,     alphaBg))
+    array.push(fibColors, color.new(color.teal,     alphaBg))
+    array.push(fibColors, color.new(color.green,    alphaBg))
+    array.push(fibColors, color.new(color.yellow,   alphaBg))
+    array.push(fibColors, color.new(color.orange,   alphaBg))
+    array.push(fibColors, color.new(color.fuchsia,  alphaBg))
+    array.push(fibColors, color.new(color.gray,     alphaBg))
+    array.push(fibColors, color.new(color.red,      alphaBg))
+    prevAlphaBg := alphaBg
 
 // === UTILS ===
 // Draw a line or update existing
