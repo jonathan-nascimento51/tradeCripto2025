@@ -71,13 +71,13 @@ Centralizes all default colors and chart styling options so indicators share the
 2. In your indicator or strategy, import the library with the `import` statement:
 
    ```pinescript
-   import Codex/PivotUtils/1 as pv
+   import jonathanmoletta17/PivotUtils/1 as pv
    ```
 
 3. To keep a consistent color scheme, import `StyleLib` and retrieve the predefined styles:
 
    ```pinescript
-   import Codex/StyleLib/1 as st
+   import jonathanmoletta17/StyleLib/1 as st
    st.Styles styles = st.getStyles()
    plot(close, color=styles.mainColor)
    ```
