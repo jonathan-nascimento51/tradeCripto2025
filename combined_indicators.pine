@@ -332,10 +332,11 @@ else if not fibEnabled
     label.delete(fibAnchorLowLabel)
 
 if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
+    float confThreshPx = atr * confThresholdATR
     for zone in sr_zones
         if zone.status != "Broken"
             for fib in fib_levels
-                if math.abs(zone.level - fib.level) < atr * confThresholdATR
+                if math.abs(zone.level - fib.level) < confThreshPx
                     conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
                     conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
                     float score = result.confluence_weight
