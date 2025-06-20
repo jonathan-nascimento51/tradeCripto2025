@@ -32,7 +32,7 @@ conf.CalculatedWeights result = conf.calculateConfluence(inputData)
 score = result.confluence_weight
 
 ## Example
-`ConfluenceExample.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:
+`confluence_example.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:
 
 ```json
 {
@@ -43,26 +43,21 @@ score = result.confluence_weight
 }
 ```
 
-Load `ConfluenceExample.pine` on a chart and adjust the inputs to experiment with different weights.
+Load `confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
 
 ## Main Scripts
 
-### `autoFib-extension.pine`
-Automatically draws Fibonacci extension levels using a zigzag based pivot search. The indicator exposes many inputs to customize which Fibonacci ratios are displayed and whether the lines extend left or right.
-
-### `combined_indicator.pine`
+### `combined_indicators.pine`
 Demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
-### `SupportandResistanceLogisticRegression.pine`
-Full implementation of a logistic regression approach to support and resistance detection. It classifies pivots, plots the resulting zones and can generate alerts when retests or breaks occur.
+### `confluence_example.pine`
+Minimal example that shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
 
 ## Helper Libraries
 
 ### `pivot_utils.pine`
 Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing highs and lows.
 
-### `fibonacci_utils.pine`
-Contains a utility to draw common Fibonacci extension levels between two prices.
 
 ### `logistic_regression_utils.pine`
 Provides a logistic function and log-loss calculation used by the indicators.
