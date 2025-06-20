@@ -37,7 +37,7 @@ conf.CalculatedWeights result = conf.calculateConfluence(inputData)
 score = result.confluence_weight
 
 ## Example
-The file `examples/confluence_example.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration
+The file `example/confluence_example.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration
 
 ```json
 {
@@ -48,18 +48,18 @@ The file `examples/confluence_example.pine` shows how to detect simple support/r
 }
 ```
 
-Load `examples/confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
+Load `example/confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
 The library now supports three weighting schemes: `linear`, `exponential` and `logistic`. When using the exponential mode the distance and temporal components are calculated as `exp(-k * value)` where `k` is configurable via the indicator inputs.
 ## Main Scripts
 
-### `examples/combined_indicators.pine`
+### `combined_indicators.pine`
 Located in the project root, this script demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
-### `examples/SupportandResistanceLogisticRegression.pine`
+### `example/SupportandResistanceLogisticRegression.pine`
 Standalone version of the logistic regression support/resistance indicator used inside `combined_indicators.pine`.
 
-### `examples/confluence_example.pine`
-Located in the project root, this minimal example shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
+### `example/confluence_example.pine`
+Located in the `example/` folder, this minimal example shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
 
 ## Helper Libraries
 
