@@ -10,7 +10,7 @@ Auto‑detecção de extensões Fibonacci (autoFib-extension.pine)
 
 Confluência entre Suporte/Resistência, Fibonacci e Volatilidade (combined_indicators.pine, confluence_lib.pine)
 
-Modelagem estatística via Regressão Logística (logistic_model_lib.pine, logistic_regression_utils.pine, logistic_training_utils.pine)
+Modelagem estatística via Regressão Logística (logistic_model_lib.pine)
 
 Gestão de zonas S/R (sr_zone_utils.pine, pivot_utils.pine)
 
@@ -57,7 +57,7 @@ Cálculo de pesos e zonas
 
 analyzer_code, impl_codex
 
-logistic_* libs
+logistic_model_lib.pine
 
 Regressão logística
 
@@ -227,7 +227,7 @@ Responsabilidades
 
 Extrair features (x1,x2,x3) de pivot history via pivot_utils.
 
-Treinar pesos com gradiente descendente (logistic_training_utils).
+Treinar pesos com gradiente descendente (logistic_model_lib).
 
 Persistir pesos no arquivo logistic_model_lib.pine (vars w0…w3).
 

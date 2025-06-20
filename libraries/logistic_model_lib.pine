@@ -1,5 +1,7 @@
 //@version=6
 library("LogisticModelLib", overlay=false)
+// Unified logistic regression helpers. This library replaces the
+// previous `logistic_regression_utils` and `logistic_training_utils` modules.
 
 // -----------------------------------------------------------------------------
 // Basic logistic function used by the model

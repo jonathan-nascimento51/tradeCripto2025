@@ -71,7 +71,7 @@ Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing high
 Common utilities for managing support/resistance zones (adding, clearing, retest and break logic).
 
 ### `libraries/logistic_model_lib.pine`
-Combines the logistic function, log-loss and gradient descent training in a single module.
+This library replaces the older `logistic_regression_utils.pine` and `logistic_training_utils.pine` files.
 
 ### `libraries/StyleLib`
 Centralizes all default colors and chart styling options so indicators share the same visual theme. The library exposes `getStyles()` which returns an object with predefined color settings.
