@@ -1,43 +1,29 @@
 //@version=6
 // =============================================================================
-//  StyleLib - Centralized chart style configurations
-//  ▸ Exports `ChartStyles` UDT and `getStyles()` helper.
+//  StyleLib - Centralized chart style constants
+//  ▸ Exports individual constants so indicators share the same visual theme.
 // =============================================================================
 library("StyleLib", overlay=false)
 
-// UDT grouping style information for indicators
-export type ChartStyles
-    // ---- Fibonacci levels ----
-    color      fibColor     // Base color for Fibonacci lines
-    int        fibWidth     // Line thickness
-    string     fibStyle     // Line style
+// ---- Support/Resistance zone colors ----
+export const color SR_COLOR_RES    = color.new(color.red, 92)
+export const color SR_COLOR_SUP    = color.new(color.green, 92)
+export const color SR_COLOR_VALID  = color.new(color.orange, 75)
+export const color SR_COLOR_BROKEN = color.new(color.gray, 95)
 
-    // ---- Support zone ----
-    color      supColor     // Base color for Support zone lines/fills
-    int        supTransp    // Transparency for Support zone fill
-    int        supWidth     // Line thickness for Support zone border
-    string     supStyle     // Line style for Support zone border
+// ---- Fibonacci defaults ----
+export const color FIB_BASE_COLOR  = color.new(color.gray, 40)
+export const color FIB_EXT_UP_COL  = color.new(color.green, 0)
+export const color FIB_EXT_DN_COL  = color.new(color.red, 0)
+export const int   FIB_WIDTH       = 1
 
-    // ---- Resistance zone ----
-    color      resColor     // Base color for Resistance zone lines/fills
-    int        resTransp    // Transparency for Resistance zone fill
-    int        resWidth     // Line thickness for Resistance zone border
-    string     resStyle     // Line style for Resistance zone border
+// ---- Label and anchor settings ----
+export const string LABEL_SIZE     = "tiny"
+export const int    LABEL_OFFSET   = 2
+export const string ANCHOR_STYLE   = label.style_label_down
+export const color  ANCHOR_TEXT_COLOR = color.yellow
+export const string ANCHOR_SIZE    = size.tiny
 
-    // ---- Confluence highlight ----
-    color      confColor    // Color used to highlight confluence areas
-    int        confWidth    // Line thickness for highlight
-    string     confStyle    // Line style for highlight
-
-// -----------------------------------------------------------------------------
-// Returns the default style configuration.
-// Users can import this library and call `getStyles()` to access these defaults.
-// Example:
-//     import jonathanmoletta17/StyleLib/1 as sty
-//     sty.ChartStyles styles = sty.getStyles()
-//     line.new(bar_index, close, bar_index+1, close+10, color=styles.fibColor)
-// -----------------------------------------------------------------------------
-export getStyles() =>
-    // Persistent constant so all calls return the same object
-    var ChartStyles styles = ChartStyles.new(color.blue, 2, line.style_solid,color.green, 80, 2, line.style_solid,color.red,   80, 2, line.style_solid,color.orange,2, line.style_dashed)
-    styles
+export const string LABEL_STYLE    = label.style_label_left
+export const color  LABEL_BG       = color.new(color.blue, 80)
+export const color  LABEL_TEXT_COLOR = color.white

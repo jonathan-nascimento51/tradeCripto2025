@@ -1,8 +1,8 @@
 //@version=6
 indicator('Confluence Example', overlay=true)
 
-import ConfluenceLib as conf
-import yourUser/StyleLib/1 as sty
+import jonathanmoletta17/ConfluenceLib/2 as conf
+import jonathanmoletta17/StyleLib/4 as sty
 
 // Example coefficients usually provided via JSON
 coefDistance = input.float(1.0, 'Distance Weight')
@@ -12,9 +12,6 @@ coefTemporal = input.float(1.0, 'Temporal Diff Weight')
 
 atrPeriod = input.int(14, 'ATR Period')
 float atr = ta.atr(atrPeriod)
-
-// Load shared style configuration
-styleCfg = sty.getStyles()
 
 // Threshold in price percentage for considering overlap
 levelThreshold = input.float(0.002, 'Overlap Threshold %', step=0.001)
@@ -40,19 +37,18 @@ var float[] fibLevels = array.from(ll, ll + (hh-ll)*0.382, ll + (hh-ll)*0.618, h
 var int[]   fibTimes  = array.from(bar_index, bar_index, bar_index, bar_index)
 
 // Iterate over levels and report confluence score when overlapping
-for i = 0 to array.size(srLevels)-1
-    srLevel = array.get(srLevels, i)
-    srTime  = array.get(srTimes, i)
-    for j = 0 to array.size(fibLevels)-1
-        fibLevel = array.get(fibLevels, j)
-        fibTime  = array.get(fibTimes, j)
-        float distAbs  = math.abs(srLevel - fibLevel)
-        float distPct  = distAbs / close
-        if distPct <= levelThreshold
-            float strength = 1.0 - distPct / levelThreshold
-            conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,50,coefDistance,coefSignal,coefRetests,coefTemporal)
-            conf.CalculatedWeights cw = conf.calculateConfluence(ci)
-            float score = cw.confluence_weight
-            label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'), 
-                     style=styleCfg.labelStyle, color=styleCfg.labelBg, 
-                     textcolor=styleCfg.labelTextColor)
+if array.size(srLevels) > 0
+    for i = 0 to array.size(srLevels)-1
+        srLevel = array.get(srLevels, i)
+        srTime  = array.get(srTimes, i)
+        for j = 0 to array.size(fibLevels)-1
+            fibLevel = array.get(fibLevels, j)
+            fibTime  = array.get(fibTimes, j)
+            float distAbs  = math.abs(srLevel - fibLevel)
+            float distPct  = distAbs / close
+            if distPct <= levelThreshold
+                float strength = 1.0 - distPct / levelThreshold
+                conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,50,coefDistance,coefSignal,coefRetests,coefTemporal)
+                conf.CalculatedWeights cw = conf.calculateConfluence(ci)
+                float score = cw.confluence_weight
+                label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'),style=sty.LABEL_STYLE, color=sty.LABEL_BG,textcolor=sty.LABEL_TEXT_COLOR)
