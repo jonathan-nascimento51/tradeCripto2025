@@ -44,7 +44,7 @@ score = result.confluence_weight
 ```
 
 Load `examples/confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
-
+The library now supports three weighting schemes: `linear`, `exponential` and `logistic`. When using the exponential mode the distance and temporal components are calculated as `exp(-k * value)` where `k` is configurable via the indicator inputs.
 ## Main Scripts
 
 ### `examples/combined_indicators.pine`

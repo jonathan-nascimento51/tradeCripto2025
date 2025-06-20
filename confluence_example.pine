@@ -9,6 +9,9 @@ coefDistance = input.float(1.0, 'Distance Weight')
 coefSignal   = input.float(1.0, 'Signal Strength Weight')
 coefRetests  = input.float(1.0, 'Retests Weight')
 coefTemporal = input.float(1.0, 'Temporal Diff Weight')
+weightScheme = input.string('linear', 'Weight Scheme', options=['linear', 'exponential', 'logistic'])
+kDist       = input.float(1.0, 'Exp K Dist')
+kTemp       = input.float(1.0, 'Exp K Temp')
 
 atrPeriod = input.int(14, 'ATR Period')
 float atr = ta.atr(atrPeriod)
@@ -51,7 +54,7 @@ if array.size(srLevels) > 0
             float distPct  = distAbs / close
             if distPct <= levelThreshold
                 float strength = 1.0 - distPct / levelThreshold
-                conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,maxTemporalDiff,coefDistance,coefSignal,coefRetests,coefTemporal)
+                conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,maxTemporalDiff,coefDistance,coefSignal,coefRetests,coefTemporal,weightScheme,kDist,kTemp)
                 conf.CalculatedWeights cw = conf.calculateConfluence(ci)
                 float score = cw.confluence_weight
                 label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'),style=sty.LABEL_STYLE, color=sty.LABEL_BG,textcolor=sty.LABEL_TEXT_COLOR)

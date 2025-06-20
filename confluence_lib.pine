@@ -23,6 +23,9 @@ export type ConfluenceInput
     float w2
     float w3
     float w4
+    string weight_scheme
+    float k_dist
+    float k_temp
 
 // UDT PARA OS RESULTADOS CALCULADOS
 // Armazena os resultados intermediários e a pontuação final.
@@ -43,12 +46,23 @@ export method calculateConfluence(ConfluenceInput input) =>
     float dist_abs = math.abs(input.fib_price - input.sr_price)
     float dist_pct = input.atr > 0 ? dist_abs / input.atr : 0
     int temp_diff = math.abs(input.fib_bar_index - input.sr_bar_index)
+    
+        // --- Normalização para pesos ---
+    float n_dist = input.distance_threshold > 0 ? dist_pct / input.distance_threshold : dist_pct
+    float n_temp = input.max_temporal_diff > 0 ? temp_diff / float(input.max_temporal_diff) : temp_diff
+    string scheme = str.lower(input.weight_scheme)
 
     // --- Passo 2: Calcular os pesos intermediários ---
-    float dist_w = input.distance_threshold > 0 ? math.max(0, 1 - dist_pct / input.distance_threshold) : 0
+    float dist_w = switch scheme
+        "exponential" => math.exp(-input.k_dist * n_dist)
+        "logistic"    => 1.0 / (1.0 + math.exp(input.k_dist * (n_dist - 0.5)))
+        => math.max(0, 1 - n_dist)
     float signal_w = na(input.sr_pred_probability) ? 0 : math.min(math.max(input.sr_pred_probability, 0), 1)
     float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
-    float temporal_w = input.max_temporal_diff > 0 ? math.max(0, 1 - temp_diff / float(input.max_temporal_diff)) : 0
+    float temporal_w = switch scheme
+        "exponential" => math.exp(-input.k_temp * n_temp)
+        "logistic"    => 1.0 / (1.0 + math.exp(input.k_temp * (n_temp - 0.5)))
+        => math.max(0, 1 - n_temp)
 
     // --- Passo 3: Calcular a pontuação de confluência final ---
     float final_weight = (dist_w * input.w1) + (signal_w * input.w2) + (retests_w * input.w3) + (temporal_w * input.w4)

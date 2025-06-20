@@ -10,7 +10,7 @@
 import jonathanmoletta17/LogisticRegressionUtils/3 as lr
 import jonathanmoletta17/LogisticTrainingUtils/1 as lt
 import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/ConfluenceLib/5 as conf
+import jonathanmoletta17/ConfluenceLib/6 as conf
 import jonathanmoletta17/StyleLib/4 as sty
 
 indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
@@ -47,6 +47,9 @@ w1 = input.float(0.4, "Weight - Distance", group="Confluence Engine")
 w2 = input.float(0.3, "Weight - Signal", group="Confluence Engine")
 w3 = input.float(0.2, "Weight - Retests", group="Confluence Engine")
 w4 = input.float(0.1, "Weight - Temporal", group="Confluence Engine")
+weightScheme = input.string("linear", "Weight Scheme", options=["linear", "exponential", "logistic"], group="Confluence Engine")
+kDist = input.float(1.0, "Exp K Dist", group="Confluence Engine")
+kTemp = input.float(1.0, "Exp K Temp", group="Confluence Engine")
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib)
 srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
@@ -311,7 +314,7 @@ if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
         if zone.status != "Broken"
             for fib in fib_levels
                 if math.abs(zone.level - fib.level) < atr * confThresholdATR
-                    conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4)
+                    conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
                     conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
                     float score = result.confluence_weight
                     if score > 0
