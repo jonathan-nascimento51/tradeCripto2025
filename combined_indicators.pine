@@ -76,6 +76,8 @@ const int MAX_SR_ZONES = 30
 const int MAX_FIB_LEVELS = 20
 const int MAX_CONF_BOXES = 40
 const int MAX_TRAIN_SAMPLES = 200
+// Predefined Fibonacci ratios for extension calculation
+const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
 
 type SR_Zone
 
@@ -315,9 +317,8 @@ if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     f_clearFibLevels()
     float diff = math.abs(lastHigh - lastLow)
     bool isUp = lastHigh > lastLow
-    float[] ratios = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
-    for idx = 0 to array.size(ratios) - 1
-        float r = array.get(ratios, idx)
+    for idx = 0 to array.size(RATIOS) - 1
+        float r = array.get(RATIOS, idx)
         float y = isUp ? lastHigh + diff * r : lastLow - diff * r
         bool isExt = r > 1.0
         color lnCol = isExt ? (isUp ? fibExtUpCol : fibExtDnCol) : fibBaseColor
