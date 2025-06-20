@@ -75,6 +75,7 @@ showFibAnchors = input.bool(true, "Show Fibonacci Anchors", group="Style – Ref
 const int MAX_SR_ZONES = 30
 const int MAX_FIB_LEVELS = 20
 const int MAX_CONF_BOXES = 40
+const int MAX_TRAIN_SAMPLES = 200
 
 type SR_Zone
 
@@ -107,6 +108,15 @@ var float[] trainY  = array.new<float>()
 // Flag that indicates if the logistic model has been trained for the
 // current set of samples.
 var bool trained = false
+
+f_pushSample(float x1, float x2, float y) =>
+    array.push(trainX1, x1)
+    array.push(trainX2, x2)
+    array.push(trainY,  y)
+    if array.size(trainY) > MAX_TRAIN_SAMPLES
+        array.shift(trainX1)
+        array.shift(trainX2)
+        array.shift(trainY)
 
 // Determine which weights will be used for the logistic model. If a comma
 // separated string is provided via input, parse it. Otherwise, attempt to
@@ -217,9 +227,7 @@ f_handleRetest(SR_Zone zone) =>
         zone.lbl.set_color(color.new(srColorValid, 25))
         zone.lbl.set_textcolor(color.white)
         zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
-        array.push(trainX1, zone.x1)
-        array.push(trainX2, zone.x2)
-        array.push(trainY, 1.0)
+        f_pushSample(zone.x1, zone.x2, 1.0)
         trained := false
 
 // Marca uma zona como rompida
@@ -239,9 +247,7 @@ f_markBroken(SR_Zone zone) =>
     zone.lbl.set_color(color.new(color.gray, 80))
     zone.lbl.set_tooltip("Zona rompida.")
     if zone.retests < retestCount
-        array.push(trainX1, zone.x1)
-        array.push(trainX2, zone.x2)
-        array.push(trainY, 0.0)
+        f_pushSample(zone.x1, zone.x2, 0.0)
         trained := false
 
 // --- Estado Global da Origem do Pivô ---
