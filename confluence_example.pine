@@ -37,10 +37,27 @@ fibPeriod = input.int(50, 'Fib Period')
 fibRatioA  = input.float(0.382, 'Fib Ratio A')
 fibRatioB  = input.float(0.618, 'Fib Ratio B')
 maxTemporalDiff = input.int(50, 'Max Temporal Diff')
-float hh = ta.highest(high, fibPeriod)
-float ll = ta.lowest(low, fibPeriod)
-var float[] fibLevels = array.from(ll, ll + (hh-ll)*fibRatioA, ll + (hh-ll)*fibRatioB, hh)
-var int[]   fibTimes  = array.from(bar_index, bar_index, bar_index, bar_index)
+// Track the last highest/lowest values so we only rebuild levels when needed
+var float hh = na
+var float ll = na
+var float[] fibLevels = array.new<float>()
+var int[]   fibTimes  = array.new<int>()
+
+float newHh = ta.highest(high, fibPeriod)
+float newLl = ta.lowest(low, fibPeriod)
+
+// Recreate the Fibonacci arrays only when the range changes
+if barstate.isfirst or newHh != hh or newLl != ll
+    hh := newHh
+    ll := newLl
+    array.clear(fibLevels)
+    array.clear(fibTimes)
+    array.push(fibLevels, ll)
+    array.push(fibLevels, ll + (hh - ll) * fibRatioA)
+    array.push(fibLevels, ll + (hh - ll) * fibRatioB)
+    array.push(fibLevels, hh)
+    for _ = 0 to 3
+        array.push(fibTimes, bar_index)
 
 // Iterate over levels and report confluence score when overlapping
 if array.size(srLevels) > 0
