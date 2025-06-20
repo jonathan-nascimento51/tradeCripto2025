@@ -53,13 +53,13 @@ The library now supports three weighting schemes: `linear`, `exponential` and `l
 ## Main Scripts
 
 ### `combined_indicators.pine`
-Demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
+Located in the project root, this script demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
 ### `SupportandResistanceLogisticRegression.pine`
 Standalone version of the logistic regression support/resistance indicator used inside `combined_indicators.pine`.
 
 ### `confluence_example.pine`
-Minimal example that shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
+Located in the project root, this minimal example shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
 
 ## Helper Libraries
 
