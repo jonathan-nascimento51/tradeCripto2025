@@ -1,0 +1,43 @@
+//@version=6
+// =============================================================================
+//  StyleLib - Centralized chart style configurations
+//  ▸ Exports `ChartStyles` UDT and `getStyles()` helper.
+// =============================================================================
+library("StyleLib", overlay=false)
+
+// UDT grouping style information for indicators
+export type ChartStyles
+    // ---- Fibonacci levels ----
+    color      fibColor     // Base color for Fibonacci lines
+    int        fibWidth     // Line thickness
+    string     fibStyle     // Line style
+
+    // ---- Support zone ----
+    color      supColor     // Base color for Support zone lines/fills
+    int        supTransp    // Transparency for Support zone fill
+    int        supWidth     // Line thickness for Support zone border
+    string     supStyle     // Line style for Support zone border
+
+    // ---- Resistance zone ----
+    color      resColor     // Base color for Resistance zone lines/fills
+    int        resTransp    // Transparency for Resistance zone fill
+    int        resWidth     // Line thickness for Resistance zone border
+    string     resStyle     // Line style for Resistance zone border
+
+    // ---- Confluence highlight ----
+    color      confColor    // Color used to highlight confluence areas
+    int        confWidth    // Line thickness for highlight
+    string     confStyle    // Line style for highlight
+
+// -----------------------------------------------------------------------------
+// Returns the default style configuration.
+// Users can import this library and call `getStyles()` to access these defaults.
+// Example:
+//     import jonathanmoletta17/StyleLib/1 as sty
+//     sty.ChartStyles styles = sty.getStyles()
+//     line.new(bar_index, close, bar_index+1, close+10, color=styles.fibColor)
+// -----------------------------------------------------------------------------
+export getStyles() =>
+    // Persistent constant so all calls return the same object
+    var ChartStyles styles = ChartStyles.new(color.blue, 2, line.style_solid,color.green, 80, 2, line.style_solid,color.red,   80, 2, line.style_solid,color.orange,2, line.style_dashed)
+    styles

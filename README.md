@@ -62,6 +62,9 @@ Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing high
 ### `logistic_regression_utils.pine`
 Provides a logistic function and log-loss calculation used by the indicators.
 
+### `StyleLib`
+Centralizes all default colors and chart styling options so indicators share the same visual theme. The library exposes `getStyles()` which returns an object with predefined color settings.
+
 ## Using the Libraries
 
 1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/1`).
@@ -69,6 +72,14 @@ Provides a logistic function and log-loss calculation used by the indicators.
 
    ```pinescript
    import Codex/PivotUtils/1 as pv
+   ```
+
+3. To keep a consistent color scheme, import `StyleLib` and retrieve the predefined styles:
+
+   ```pinescript
+   import Codex/StyleLib/1 as st
+   st.Styles styles = st.getStyles()
+   plot(close, color=styles.mainColor)
    ```
 
    Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.

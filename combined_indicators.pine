@@ -10,14 +10,18 @@
 import jonathanmoletta17/LogisticRegressionUtils/1 as lr
 import jonathanmoletta17/PivotUtils/2 as pv
 import jonathanmoletta17/ConfluenceLib/2 as conf
+import jonathanmoletta17/StyleLib/1 as sty
 
 indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7_Corrected", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
 
-// Declarar cores globalmente
+// Declarar cores globalmente (serão atualizadas via StyleLib)
 var color borderColorRes = na
 var color borderColorSup = na
 var color borderColorValid = na
 var color borderColorBroken = na
+
+// Importa as configurações de estilo padronizadas
+styleCfg = sty.getStyles()
 
 // ⁕ Subsistemas
 srEnabled = input.bool(true, "Enable Support/Resistance", group="Subsystems")
@@ -38,19 +42,19 @@ w2 = input.float(0.3, "Weight - Signal", group="Confluence Engine")
 w3 = input.float(0.2, "Weight - Retests", group="Confluence Engine")
 w4 = input.float(0.1, "Weight - Temporal", group="Confluence Engine")
 
-// ⁕ Estilos – S/R
-srColorRes = input.color(color.new(color.red, 92), "Resistance (Active Fill)", group="Style – S/R")
-srColorSup = input.color(color.new(color.green, 92), "Support (Active Fill)", group="Style – S/R")
-srColorValid = input.color(color.new(color.orange, 75), "Validated Zone", group="Style – S/R")
-srColorBroken = input.color(color.new(color.gray, 95), "Broken Zone", group="Style – S/R")
+// ⁕ Estilos – S/R (valores padrão via StyleLib)
+srColorRes    = input.color(styleCfg.srColorRes, "Resistance (Active Fill)", group="Style – S/R")
+srColorSup    = input.color(styleCfg.srColorSup, "Support (Active Fill)",  group="Style – S/R")
+srColorValid  = input.color(styleCfg.srColorValid, "Validated Zone",       group="Style – S/R")
+srColorBroken = input.color(styleCfg.srColorBroken, "Broken Zone",          group="Style – S/R")
 
-// ⁕ Estilos – Fibonacci
-fibBaseColor = input.color(color.new(color.gray, 40), "≤1× Base color", group="Style – Fib")
-fibExtUpCol = input.color(color.new(color.green, 0), ">1× Up color", group="Style – Fib")
-fibExtDnCol = input.color(color.new(color.red, 0), ">1× Down color", group="Style – Fib")
-fibWidth = input.int(1, "Line width", minval=1, maxval=4, group="Style – Fib")
-labelSizeOpt = input.string("tiny", "Label size", options=["tiny", "small", "normal"], group="Style – Fib")
-labelOffset = input.int(2, "Label offset (bars)", minval=0, group="Style – Fib")
+// ⁕ Estilos – Fibonacci (padrões vindos de StyleLib)
+fibBaseColor  = input.color(styleCfg.fibBaseColor, "≤1× Base color", group="Style – Fib")
+fibExtUpCol   = input.color(styleCfg.fibExtUpCol, ">1× Up color", group="Style – Fib")
+fibExtDnCol   = input.color(styleCfg.fibExtDnCol, ">1× Down color", group="Style – Fib")
+fibWidth      = input.int(styleCfg.fibWidth, "Line width", minval=1, maxval=4, group="Style – Fib")
+labelSizeOpt  = input.string(styleCfg.labelSize, "Label size", options=["tiny", "small", "normal"], group="Style – Fib")
+labelOffset   = input.int(styleCfg.labelOffset, "Label offset (bars)", minval=0, group="Style – Fib")
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -228,12 +232,12 @@ if bar_index >= length
         lastHigh := ph
         if showFibAnchors and fibEnabled
             label.delete(fibAnchorHighLabel)
-            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=label.style_none, textcolor=color.new(color.white, 30), size=size.small, tooltip="Âncora Superior Fibonacci")
+            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=styleCfg.anchorStyle, textcolor=styleCfg.anchorTextColor, size=styleCfg.anchorSize, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
         if showFibAnchors and fibEnabled
             label.delete(fibAnchorLowLabel)
-            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=label.style_none, textcolor=color.new(color.white, 30), size=size.small, tooltip="Âncora Inferior Fibonacci")
+            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=styleCfg.anchorStyle, textcolor=styleCfg.anchorTextColor, size=styleCfg.anchorSize, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     f_clearFibLevels()

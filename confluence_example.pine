@@ -2,6 +2,7 @@
 indicator('Confluence Example', overlay=true)
 
 import ConfluenceLib as conf
+import yourUser/StyleLib/1 as sty
 
 // Example coefficients usually provided via JSON
 coefDistance = input.float(1.0, 'Distance Weight')
@@ -11,6 +12,9 @@ coefTemporal = input.float(1.0, 'Temporal Diff Weight')
 
 atrPeriod = input.int(14, 'ATR Period')
 float atr = ta.atr(atrPeriod)
+
+// Load shared style configuration
+styleCfg = sty.getStyles()
 
 // Threshold in price percentage for considering overlap
 levelThreshold = input.float(0.002, 'Overlap Threshold %', step=0.001)
@@ -49,4 +53,6 @@ for i = 0 to array.size(srLevels)-1
             conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,50,coefDistance,coefSignal,coefRetests,coefTemporal)
             conf.CalculatedWeights cw = conf.calculateConfluence(ci)
             float score = cw.confluence_weight
-            label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'))
+            label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'), 
+                     style=styleCfg.labelStyle, color=styleCfg.labelBg, 
+                     textcolor=styleCfg.labelTextColor)
