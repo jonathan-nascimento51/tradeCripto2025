@@ -98,6 +98,9 @@ Centralizes all default colors and chart styling options so indicators share the
 ## Ajustes Visuais e Customização
 - Agora é possível parametrizar a largura dos boxes de confluência através do input "Confluence Box Width" no indicador. Essa mudança visa melhorar a adaptação visual conforme o perfil do ativo.
 
+## Baseline de Backtest e Correção de Regressões
+O repositório inclui o arquivo `benchmarks/backtests.json` com as métricas de referência para os principais scripts. O agente `qa_backtest` compara cada nova execução com esses valores e gera um relatório de incidente se o `Profit-factor` cair mais de 2 % abaixo do baseline. Esse relatório é utilizado pelo `prompt_builder` para criar um prompt de correção que será enviado ao `impl_codex`.
+
 ## Library Test Scripts
 To validate each helper library independently, open any of the files under `tests/` in the TradingView Pine editor.
 

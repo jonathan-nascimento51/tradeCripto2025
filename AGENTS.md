@@ -31,6 +31,19 @@ graph TD
   C -->|push| F[Training Agent]
   F --> C
 
+1.2 Circuito de Feedback e Correção de Rota
+
+Esta etapa estende o fluxo acima para lidar automaticamente com regressões de desempenho.
+
+graph TD
+  A[impl_codex Commits Change] --> B{qa_backtest Executa Backtest}
+  B -->|Sucesso ✅| C[doc_writer Atualiza Docs]
+  B -->|Falha ❌| D[qa_backtest Gera Relatório de Incidente]
+  D --> E[prompt_builder Acionado em Modo de Correção]
+  E --> F[Gera Prompt de Correção de Regressão]
+  F --> G{impl_codex Recebe Tarefa de Correção}
+  G --> A
+
 2. Mapa de Módulos ⇄ Agentes
 
 Módulo / Arquivo
@@ -223,6 +236,35 @@ Execute backtest no script abaixo nos últimos 180 dias BTCUSDT 1h:
 Compare métricas com baseline (json).
 Informe regressões >2 %.
 
+Lógica de falha
+
+- Se `Profit-factor` for menor que `baseline.Profit-factor * 0.98`, a execução é considerada **falha**.
+- Ao falhar, o agente grava `incident-<trace_id>.json` contendo detalhes do script, commit causador e diferenças de métricas.
+- Após gerar o arquivo de incidente, o `prompt_builder` deve ser acionado usando o template `prompt_templates/regression_correction.xml` para orientar o `impl_codex` a corrigir a regressão.
+
+Exemplo de arquivo de incidente
+
+```json
+{
+  "trace_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+  "failing_script": "combined_indicators.pine",
+  "commit_sha_causador": "abcdef123456",
+  "timestamp": "2025-06-20T19:30:00Z",
+  "metrics_diff": {
+    "profit_factor": {
+      "baseline": 1.52,
+      "actual": 1.21,
+      "regression_percent": -20.39
+    },
+    "max_drawdown": {
+      "baseline": 12.5,
+      "actual": 18.2,
+      "regression_percent": 45.6
+    }
+  },
+  "code_diff_url": "https://github.com/user/repo/commit/abcdef123456.diff"
+}
+```
 3.5 Training Agent (train_logistic@v1.0)
 
 Persona«Cientista de Dados especializado em regressão logística para séries financeiras.»

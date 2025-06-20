@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-- Placeholder for upcoming changes.
+- Added feedback correction circuit with incident reports and regression prompt template.
 
 ## [v2.0.0] - 2025-06-20
 ### Added
