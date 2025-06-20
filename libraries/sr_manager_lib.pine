@@ -1,0 +1,27 @@
+//@version=6
+library("SRManagerLib", overlay=false)
+
+import "./sr_zone_utils.pine" as sru
+import "./logistic_model_lib.pine" as lm
+
+// -----------------------------------------------------------------------------
+// createZone
+// Evaluates logistic probability and creates a support/resistance zone if the
+// threshold is met. The new zone is appended to the provided array.
+// -----------------------------------------------------------------------------
+export createZone(sru.SR_Zone[] zones, float level, bool isSupport, color fillColor, color borderColor, float rsi, float rsiThreshold, float atr, float volMA, float closePrice, float openPrice, float volumeVal, float w0, float w1, float w2, float w3, float probThreshold, float volatilityBandATR, int len, int maxZones) =>
+    if not na(level)
+        float x1 = rsi > rsiThreshold ? 1 : -1
+        float x2 = math.abs(closePrice - openPrice) > atr ? 1 : -1
+        float x3 = volumeVal > volMA ? 1 : -1
+        float prob = lm.logistic(x1, x2, x3, w0, w1, w2, w3)
+        float pivAtr = atr[len]
+        if prob > probThreshold
+            float atr_offset_local = pivAtr * volatilityBandATR
+            float upper = level + atr_offset_local
+            float lower = level - atr_offset_local
+            line l_u = line.new(bar_index - len, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+            line l_l = line.new(bar_index - len, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+            linefill lf = linefill.new(l_u, l_l, color=fillColor)
+            label newLbl = label.new(bar_index, level, "", style=label.style_none)
+            sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), maxZones)

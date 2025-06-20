@@ -14,6 +14,9 @@ import "./libraries/sr_zone_utils.pine" as sru
 import "./libraries/pivot_utils.pine" as pv
 import "./libraries/confluence_lib.pine" as conf
 import "./libraries/style_lib.pine" as sty
+import "./libraries/fib_extension_lib.pine" as fib
+import "./libraries/sr_manager_lib.pine" as srm
+import "./libraries/conf_box_lib.pine" as cb
 
 // Retrieve centralized styling options. Scripts can still reference the
 // individual constants if desired but using this object keeps the code tidy.
@@ -83,18 +86,9 @@ const int MAX_SR_ZONES = 30
 const int MAX_FIB_LEVELS = 20
 const int MAX_CONF_BOXES = 40
 const int MAX_TRAIN_SAMPLES = 200
-// Predefined Fibonacci ratios for extension calculation
-const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
-
-type FibLevel
-    line ln
-    label lbl
-    float level
-    float ratio
-    int bar_index
 
 var sru.SR_Zone[] sr_zones = array.new<sru.SR_Zone>()
-var FibLevel[] fib_levels = array.new<FibLevel>()
+var fib.FibLevel[] fib_levels = array.new<fib.FibLevel>()
 var box[] confBoxes = array.new_box()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
@@ -150,23 +144,6 @@ else
     trained := false
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
-
-f_clearFibLevels() =>
-    for f in fib_levels
-        line.delete(f.ln)
-        label.delete(f.lbl)
-    array.clear(fib_levels)
-
-f_pushBox(box b) =>
-    array.push(confBoxes, b)
-    if array.size(confBoxes) > MAX_CONF_BOXES
-        box.delete(array.shift(confBoxes))
-
-f_clearBoxes() =>
-    for b in confBoxes
-        box.delete(b)
-    array.clear(confBoxes)
-
 // --- Lógica de Mercado ---
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
@@ -181,25 +158,6 @@ pl_prev = pv.pivotLow(low[1], length)
 float confThreshPx = atr * confThresholdATR
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
-f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
-    if not na(level)
-        float x1 = rsi > rsiThreshold ? 1 : -1
-        float x2 = math.abs(close - open) > atr ? 1 : -1
-        float x3 = volume > volMA ? 1 : -1
-
-        float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
-        float pivAtr   = atr[length]
-
-        if prob > probThreshold
-            float atr_offset_local = pivAtr * volatilityBandATR
-            float upper = level + atr_offset_local
-            float lower = level - atr_offset_local
-            line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
-            line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
-            linefill lf = linefill.new(l_u, l_l, color=fillColor)
-            label newLbl = label.new(bar_index, level, "", style=label.style_none)
-            sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), MAX_SR_ZONES)
-
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
 bool isPivotHighOrigin = not na(ph) and na(ph_prev)
@@ -212,8 +170,8 @@ if srEnabled
     borderColorValid := color.new(srColorValid, 50)
     borderColorBroken := color.new(srColorBroken, 85)
     
-    f_createZone(ph, false, srColorRes, borderColorRes)
-    f_createZone(pl, true, srColorSup, borderColorSup)
+    srm.createZone(sr_zones, ph, false, srColorRes, borderColorRes, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
+    srm.createZone(sr_zones, pl, true, srColorSup, borderColorSup, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
 
     var bool retrainNeeded = false
     for zone in sr_zones
@@ -266,20 +224,9 @@ if bar_index >= length
             fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=styles.anchor_style, textcolor=styles.anchor_text_color, size=styles.anchor_size, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
-    f_clearFibLevels()
-    float diff = math.abs(lastHigh - lastLow)
-    bool isUp = lastHigh > lastLow
-    for idx = 0 to array.size(RATIOS) - 1
-        float r = array.get(RATIOS, idx)
-        float y = isUp ? lastHigh + diff * r : lastLow - diff * r
-        bool isExt = r > 1.0
-        color lnCol = isExt ? (isUp ? fibExtUpCol : fibExtDnCol) : fibBaseColor
-        line ln = line.new(bar_index, y, bar_index + 1, y, color=lnCol, style=isExt ? line.style_solid : line.style_dotted, width=fibWidth, extend=extend.right)
-        string lblTxt = str.tostring(r * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
-        label lb = label.new(bar_index + (idx % 2 == 0 ? labelOffset : -labelOffset), y, text=lblTxt, xloc=xloc.bar_index, style=idx % 2 == 0 ? label.style_label_left : label.style_label_right, color=color.new(lnCol, 80), textcolor=lnCol, size=labelSizeOpt)
-        array.push(fib_levels, FibLevel.new(ln, lb, y, r, bar_index))
+    fib.drawLevels(fib_levels, bar_index, lastHigh, lastLow, fibBaseColor, fibExtUpCol, fibExtDnCol, fibWidth, labelSizeOpt, labelOffset)
 else if not fibEnabled
-    f_clearFibLevels()
+    fib.clearLevels(fib_levels)
     label.delete(fibAnchorHighLabel)
     label.delete(fibAnchorLowLabel)
 
@@ -295,6 +242,6 @@ if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
                         color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
                         string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fib.level) + " (" + str.tostring(fib.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
                         box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + confluenceBoxWidth, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
-                        f_pushBox(confBox)
+                        cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
 else
-    f_clearBoxes()
+    cb.clearBoxes(confBoxes)

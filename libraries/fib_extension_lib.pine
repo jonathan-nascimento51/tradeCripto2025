@@ -1,0 +1,42 @@
+//@version=6
+library("FibExtensionLib", overlay=false)
+
+// Defines the FibLevel structure used to track drawn Fibonacci lines and labels
+export type FibLevel
+    line ln
+    label lbl
+    float level
+    float ratio
+    int bar_index
+
+// Predefined Fibonacci ratios for extension calculation
+export const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
+
+// -----------------------------------------------------------------------------
+// clearLevels
+// Deletes all lines and labels stored in the array and empties it.
+// -----------------------------------------------------------------------------
+export clearLevels(FibLevel[] levels) =>
+    for f in levels
+        line.delete(f.ln)
+        label.delete(f.lbl)
+    array.clear(levels)
+
+// -----------------------------------------------------------------------------
+// drawLevels
+// Creates Fibonacci extension lines based on the provided high and low values.
+// Results are stored in the passed array.
+// -----------------------------------------------------------------------------
+export drawLevels(FibLevel[] levels, int barIndex, float lastHigh, float lastLow, color baseColor, color extUpColor, color extDnColor, int width, string lblSize, int lblOffset) =>
+    clearLevels(levels)
+    float diff = math.abs(lastHigh - lastLow)
+    bool isUp = lastHigh > lastLow
+    for idx = 0 to array.size(RATIOS) - 1
+        float r = array.get(RATIOS, idx)
+        float y = isUp ? lastHigh + diff * r : lastLow - diff * r
+        bool isExt = r > 1.0
+        color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
+        line ln = line.new(barIndex, y, barIndex + 1, y, color=lnCol, style=isExt ? line.style_solid : line.style_dotted, width=width, extend=extend.right)
+        string lblTxt = str.tostring(r * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
+        label lb = label.new(barIndex + (idx % 2 == 0 ? lblOffset : -lblOffset), y, text=lblTxt, xloc=xloc.bar_index, style=idx % 2 == 0 ? label.style_label_left : label.style_label_right, color=color.new(lnCol, 80), textcolor=lnCol, size=lblSize)
+        array.push(levels, FibLevel.new(ln, lb, y, r, barIndex))

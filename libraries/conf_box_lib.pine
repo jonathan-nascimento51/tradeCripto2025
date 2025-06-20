@@ -1,0 +1,20 @@
+//@version=6
+library("ConfBoxLib", overlay=false)
+
+// -----------------------------------------------------------------------------
+// pushBox
+// Adds a box to the array and enforces a maximum size.
+// -----------------------------------------------------------------------------
+export pushBox(box[] boxes, box b, int maxBoxes) =>
+    array.push(boxes, b)
+    if array.size(boxes) > maxBoxes
+        box.delete(array.shift(boxes))
+
+// -----------------------------------------------------------------------------
+// clearBoxes
+// Deletes all boxes stored in the array.
+// -----------------------------------------------------------------------------
+export clearBoxes(box[] boxes) =>
+    for b in boxes
+        box.delete(b)
+    array.clear(boxes)
