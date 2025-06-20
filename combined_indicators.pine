@@ -7,9 +7,9 @@
 //  ▸ Adiciona tooltips contextuais para zonas validadas e de confluência.
 //  ▸ By: RefinadorVisualZonasPine
 // =============================================================================
-import jonathanmoletta17/LogisticRegressionUtils/1 as lr
+import jonathanmoletta17/LogisticRegressionUtils/3 as lr
 import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/ConfluenceLib/2 as conf
+import jonathanmoletta17/ConfluenceLib/5 as conf
 import jonathanmoletta17/StyleLib/4 as sty
 
 indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)

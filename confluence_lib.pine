@@ -46,7 +46,7 @@ export method calculateConfluence(ConfluenceInput input) =>
 
     // --- Passo 2: Calcular os pesos intermediários ---
     float dist_w = input.distance_threshold > 0 ? math.max(0, 1 - dist_pct / input.distance_threshold) : 0
-    float signal_w = input.sr_pred_probability
+    float signal_w = na(input.sr_pred_probability) ? 0 : math.min(math.max(input.sr_pred_probability, 0), 1)
     float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
     float temporal_w = input.max_temporal_diff > 0 ? math.max(0, 1 - temp_diff / float(input.max_temporal_diff)) : 0
 
