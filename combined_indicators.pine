@@ -9,10 +9,10 @@
 //  ▸ NOTE: This script also incorporates the logistic regression support/resistance
 //          logic from `SupportandResistanceLogisticRegression.pine`.
 // =============================================================================
-import jonathanmoletta17/LogisticModelLib/1 as lm
-import jonathanmoletta17/SRZoneUtils/1 as sru
+import jonathanmoletta17/LogisticModelLib/2 as lm
+import jonathanmoletta17/SRZoneUtils/2 as sru
 import jonathanmoletta17/PivotUtils/2 as pv
-import jonathanmoletta17/ConfluenceLib/6 as conf
+import jonathanmoletta17/ConfluenceLib/7 as conf
 import jonathanmoletta17/StyleLib/4 as sty
 
 indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
@@ -61,7 +61,7 @@ srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="
 srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // ⁕ Estilos – Fibonacci (padrões vindos de StyleLib)
-labelOffset = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0
+labelOffset = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -167,6 +167,7 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
     float x1 = rsi > rsiThreshold ? 1 : -1
     float x2 = math.abs(close - open) > atr ? 1 : -1
     float x3 = volume > volMA ? 1 : -1
+    float volMA = ta.sma(volume, length)
 
     float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
     float pivAtr   = atr[length]
