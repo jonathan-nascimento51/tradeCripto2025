@@ -119,3 +119,13 @@ To validate each helper library independently, open any of the files under `test
    - `style_lib_test.pine` simply plots the close series using one of the palette colors.
 
 Running these scripts helps confirm that each exported function executes without errors and produces visible output on the chart.
+## Context Utilities
+`tools/context_utils.py` provides small helper functions used by the prompt builder.
+These allow building a compact "context pack" without reading entire files.
+
+- `extract_code_snippet(file_path, function_name)` returns a slice of code around the
+  target function so only relevant lines are included in the prompt.
+- `extract_text_section(file_path, start_keyword, end_keyword)` extracts documentation
+  between two keywords.
+- `get_file_structure(directory)` lists files in a directory, giving a quick overview
+  of the project layout.
