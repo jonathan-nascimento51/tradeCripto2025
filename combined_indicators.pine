@@ -9,8 +9,8 @@
 //  ▸ NOTE: This script also incorporates the logistic regression support/resistance
 //          logic from `SupportandResistanceLogisticRegression.pine`.
 // =============================================================================
-import jonathanmoletta17/LogisticRegressionUtils/3 as lr
-import jonathanmoletta17/LogisticTrainingUtils/1 as lt
+import jonathanmoletta17/LogisticModelLib/1 as lm
+import jonathanmoletta17/SRZoneUtils/1 as sru
 import jonathanmoletta17/PivotUtils/2 as pv
 import jonathanmoletta17/ConfluenceLib/6 as conf
 import jonathanmoletta17/StyleLib/4 as sty
@@ -79,21 +79,6 @@ const int MAX_TRAIN_SAMPLES = 200
 // Predefined Fibonacci ratios for extension calculation
 const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
 
-type SR_Zone
-
-    int bar_index
-    line line_upper
-    line line_lower
-    linefill fill_obj
-    label lbl
-    float level
-    float probability
-    float x1
-    float x2
-    bool isSupport
-    int retests = 0
-    string status = "Active"
-
 type FibLevel
     line ln
     label lbl
@@ -101,7 +86,7 @@ type FibLevel
     float ratio
     int bar_index
 
-var SR_Zone[] sr_zones = array.new<SR_Zone>()
+var sru.SR_Zone[] sr_zones = array.new<sru.SR_Zone>()
 var FibLevel[] fib_levels = array.new<FibLevel>()
 var box[] confBoxes = array.new_box()
 var float[] trainX1 = array.new<float>()
@@ -135,7 +120,7 @@ if useTrainedWeights
             finalW2 := str.tonumber(array.get(parts, 2))
         trained := true
     else if (not trained) and array.size(trainY) > 0
-        lt.TrainResult res = lt.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
+        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
         finalW0 := res.w0
         finalW1 := res.w1
         finalW2 := res.w2
@@ -148,22 +133,6 @@ else
     trained := false
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
-f_pushZone(SR_Zone zone) =>
-    array.push(sr_zones, zone)
-    if array.size(sr_zones) > MAX_SR_ZONES
-        SR_Zone oldZone = array.shift(sr_zones)
-        line.delete(oldZone.line_upper)
-        line.delete(oldZone.line_lower)
-        linefill.delete(oldZone.fill_obj)
-        label.delete(oldZone.lbl)
-
-f_clearZones() =>
-    for z in sr_zones
-        line.delete(z.line_upper)
-        line.delete(z.line_lower)
-        linefill.delete(z.fill_obj)
-        label.delete(z.lbl)
-    array.clear(sr_zones)
 
 f_clearFibLevels() =>
     for f in fib_levels
@@ -193,7 +162,7 @@ float confThreshPx = atr * confThresholdATR
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
     float x1 = rsi > rsiThreshold ? 1 : -1
     float x2 = math.abs(close - open) > atr ? 1 : -1
-    float prob = lr.logistic(x1, x2, finalW0, finalW1, finalW2)
+    float prob = lm.logistic(x1, x2, finalW0, finalW1, finalW2)
     float pivAtr   = atr[length]
 
     if prob > probThreshold
@@ -204,52 +173,7 @@ f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
         line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
         linefill lf = linefill.new(l_u, l_l, color=fillColor)
         label newLbl = label.new(bar_index, level, "", style=label.style_none)
-        f_pushZone(SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, isSupport))
-
-// Processa reteste e validação de uma zona
-f_handleRetest(SR_Zone zone) =>
-    zone.retests += 1
-    zone.lbl.set_text(str.tostring(zone.retests) + 'x')
-    zone.lbl.set_x(bar_index + 1)
-    zone.lbl.set_y(zone.level)
-    zone.lbl.set_style(label.style_label_left)
-    zone.lbl.set_size(size.tiny)
-    zone.lbl.set_color(color.new(color.gray, 20))
-    zone.lbl.set_textcolor(srColorValid)
-
-    if zone.retests >= retestCount and zone.status != "Validated"
-        zone.status := "Validated"
-        zone.line_upper.set_color(borderColorValid)
-        zone.line_lower.set_color(borderColorValid)
-        zone.line_upper.set_width(2)
-        zone.line_lower.set_width(2)
-        zone.fill_obj.set_color(srColorValid)
-        zone.lbl.set_text("✔")
-        zone.lbl.set_color(color.new(srColorValid, 25))
-        zone.lbl.set_textcolor(color.white)
-        zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
-        f_pushSample(zone.x1, zone.x2, 1.0)
-        trained := false
-
-// Marca uma zona como rompida
-f_markBroken(SR_Zone zone) =>
-    zone.status := "Broken"
-    zone.line_upper.set_color(borderColorBroken)
-    zone.line_lower.set_color(borderColorBroken)
-    zone.line_upper.set_style(line.style_dashed)
-    zone.line_lower.set_style(line.style_dashed)
-    zone.fill_obj.set_color(srColorBroken)
-    zone.line_upper.set_extend(extend.none)
-    zone.line_lower.set_extend(extend.none)
-    zone.line_upper.set_x2(bar_index)
-    zone.line_lower.set_x2(bar_index)
-    zone.lbl.set_text("B")
-    zone.lbl.set_textcolor(srColorBroken)
-    zone.lbl.set_color(color.new(color.gray, 80))
-    zone.lbl.set_tooltip("Zona rompida.")
-    if zone.retests < retestCount
-        f_pushSample(zone.x1, zone.x2, 0.0)
-        trained := false
+        sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, isSupport), MAX_SR_ZONES)
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
@@ -269,16 +193,25 @@ if srEnabled
     if not na(pl)
         f_createZone(pl, true, srColorSup, borderColorSup)
 
+    var bool retrainNeeded = false
     for zone in sr_zones
         if zone.status != "Broken"
             bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
             
             if isRetest
-                f_handleRetest(zone)
+                bool validated = sru.f_handleRetest(zone, retestCount, borderColorValid, srColorValid)
+                if validated
+                    f_pushSample(zone.x1, zone.x2, 1.0)
+                    retrainNeeded := true
 
             if isBroken
-                f_markBroken(zone)
+                bool earlyBreak = sru.f_markBroken(zone, retestCount, borderColorBroken, srColorBroken)
+                if earlyBreak
+                    f_pushSample(zone.x1, zone.x2, 0.0)
+                    retrainNeeded := true
+    if retrainNeeded
+        trained := false
 else
     // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
     isPivotHighOrigin := false

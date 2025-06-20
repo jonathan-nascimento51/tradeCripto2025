@@ -1,0 +1,93 @@
+//@version=6
+library("SRZoneUtils", overlay=false)
+
+// ---- User defined type representing a support/resistance zone ----
+export type SR_Zone
+    int bar_index
+    line line_upper
+    line line_lower
+    linefill fill_obj
+    label lbl
+    float level
+    float probability
+    float x1
+    float x2
+    bool isSupport
+    int retests = 0
+    string status = "Active"
+
+// -----------------------------------------------------------------------------
+// f_pushZone
+// Adds a new zone to the array and enforces a maximum size.
+// -----------------------------------------------------------------------------
+export f_pushZone(SR_Zone[] zones, SR_Zone zone, int maxZones) =>
+    array.push(zones, zone)
+    if array.size(zones) > maxZones
+        SR_Zone oldZone = array.shift(zones)
+        line.delete(oldZone.line_upper)
+        line.delete(oldZone.line_lower)
+        linefill.delete(oldZone.fill_obj)
+        label.delete(oldZone.lbl)
+
+// -----------------------------------------------------------------------------
+// f_clearZones
+// Deletes all drawing objects from a zone array and clears it.
+// -----------------------------------------------------------------------------
+export f_clearZones(SR_Zone[] zones) =>
+    for z in zones
+        line.delete(z.line_upper)
+        line.delete(z.line_lower)
+        linefill.delete(z.fill_obj)
+        label.delete(z.lbl)
+    array.clear(zones)
+
+// -----------------------------------------------------------------------------
+// f_handleRetest
+// Updates retest counters and styling when a zone is touched.
+// Returns true when the zone becomes validated.
+// -----------------------------------------------------------------------------
+export f_handleRetest(SR_Zone zone, int retestCount, color borderColorValid, color srColorValid) =>
+    zone.retests += 1
+    zone.lbl.set_text(str.tostring(zone.retests) + 'x')
+    zone.lbl.set_x(bar_index + 1)
+    zone.lbl.set_y(zone.level)
+    zone.lbl.set_style(label.style_label_left)
+    zone.lbl.set_size(size.tiny)
+    zone.lbl.set_color(color.new(color.gray, 20))
+    zone.lbl.set_textcolor(srColorValid)
+    bool validated = false
+    if zone.retests >= retestCount and zone.status != "Validated"
+        zone.status := "Validated"
+        zone.line_upper.set_color(borderColorValid)
+        zone.line_lower.set_color(borderColorValid)
+        zone.line_upper.set_width(2)
+        zone.line_lower.set_width(2)
+        zone.fill_obj.set_color(srColorValid)
+        zone.lbl.set_text("✔")
+        zone.lbl.set_color(color.new(srColorValid, 25))
+        zone.lbl.set_textcolor(color.white)
+        zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
+        validated := true
+    validated
+
+// -----------------------------------------------------------------------------
+// f_markBroken
+// Marks a zone as broken. Returns true when the break happened before
+// the required retest count was reached.
+// -----------------------------------------------------------------------------
+export f_markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color srColorBroken) =>
+    zone.status := "Broken"
+    zone.line_upper.set_color(borderColorBroken)
+    zone.line_lower.set_color(borderColorBroken)
+    zone.line_upper.set_style(line.style_dashed)
+    zone.line_lower.set_style(line.style_dashed)
+    zone.fill_obj.set_color(srColorBroken)
+    zone.line_upper.set_extend(extend.none)
+    zone.line_lower.set_extend(extend.none)
+    zone.line_upper.set_x2(bar_index)
+    zone.line_lower.set_x2(bar_index)
+    zone.lbl.set_text("B")
+    zone.lbl.set_textcolor(srColorBroken)
+    zone.lbl.set_color(color.new(color.gray, 80))
+    zone.lbl.set_tooltip("Zona rompida.")
+    zone.retests < retestCount
