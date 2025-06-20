@@ -32,7 +32,7 @@ conf.CalculatedWeights result = conf.calculateConfluence(inputData)
 score = result.confluence_weight
 
 ## Example
-`confluence_example.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:
+`examples/confluence_example.pine` shows how to detect simple support/resistance levels and Fibonacci retracements, compute confluence weights for overlapping levels and output them on the chart. Example JSON-like configuration for the coefficients:
 
 ```json
 {
@@ -43,26 +43,26 @@ score = result.confluence_weight
 }
 ```
 
-Load `confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
+Load `examples/confluence_example.pine` on a chart and adjust the inputs to experiment with different weights.
 
 ## Main Scripts
 
-### `combined_indicators.pine`
+### `examples/combined_indicators.pine`
 Demonstrates how to combine the logistic regression support/resistance model with Fibonacci extensions. It imports the helper libraries and plots both systems on the same chart.
 
-### `confluence_example.pine`
+### `examples/confluence_example.pine`
 Minimal example that shows how to detect support/resistance levels and Fibonacci retracements then calculate the confluence weight between them.
 
 ## Helper Libraries
 
-### `pivot_utils.pine`
+### `libraries/pivot_utils.pine`
 Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing highs and lows.
 
 
-### `logistic_regression_utils.pine`
+### `libraries/logistic_regression_utils.pine`
 Provides a logistic function and log-loss calculation used by the indicators.
 
-### `StyleLib`
+### `libraries/StyleLib`
 Centralizes all default colors and chart styling options so indicators share the same visual theme. The library exposes `getStyles()` which returns an object with predefined color settings.
 
 ## Using the Libraries
