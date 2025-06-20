@@ -173,27 +173,31 @@ float confThreshPx = atr * confThresholdATR
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
 f_createZone(float level, bool isSupport, color fillColor, color borderColor) =>
-    float x1 = rsi > rsiThreshold ? 1 : -1
-    float x2 = math.abs(close - open) > atr ? 1 : -1
-    float x3 = volume > volMA ? 1 : -1
+    if not na(level)
+        float x1 = rsi > rsiThreshold ? 1 : -1
+        float x2 = math.abs(close - open) > atr ? 1 : -1
+        float x3 = volume > volMA ? 1 : -1
 
-    float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
-    float pivAtr   = atr[length]
+        float prob = lm.logistic(x1, x2, x3, finalW0, finalW1, finalW2, finalW3)
+        float pivAtr   = atr[length]
 
-    if prob > probThreshold
-        float atr_offset_local = pivAtr * volatilityBandATR
-        float upper = level + atr_offset_local
-        float lower = level - atr_offset_local
-        line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
-        line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
-        linefill lf = linefill.new(l_u, l_l, color=fillColor)
-        label newLbl = label.new(bar_index, level, "", style=label.style_none)
-        sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), MAX_SR_ZONES)
+        if prob > probThreshold
+            float atr_offset_local = pivAtr * volatilityBandATR
+            float upper = level + atr_offset_local
+            float lower = level - atr_offset_local
+            line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+            line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
+            linefill lf = linefill.new(l_u, l_l, color=fillColor)
+            label newLbl = label.new(bar_index, level, "", style=label.style_none)
+            sru.f_pushZone(sr_zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), MAX_SR_ZONES)
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
-bool isPivotHighOrigin = not na(ph) and na(pv.pivotHigh(high[1], length))
-bool isPivotLowOrigin  = not na(pl) and na(pv.pivotLow(low[1], length))
+ph_prev = pv.pivotHigh(high[1], length)
+pl_prev = pv.pivotLow(low[1], length)
+
+bool isPivotHighOrigin = not na(ph) and na(ph_prev)
+bool isPivotLowOrigin  = not na(pl) and na(pl_prev)
 
 // --- Lógica de Suporte / Resistência ---
 if srEnabled
@@ -201,12 +205,9 @@ if srEnabled
     borderColorSup := color.new(srColorSup, 75)
     borderColorValid := color.new(srColorValid, 50)
     borderColorBroken := color.new(srColorBroken, 85)
-
-    if not na(ph)
-        f_createZone(ph, false, srColorRes, borderColorRes)
-
-    if not na(pl)
-        f_createZone(pl, true, srColorSup, borderColorSup)
+    
+    f_createZone(ph, false, srColorRes, borderColorRes)
+    f_createZone(pl, true, srColorSup, borderColorSup)
 
     var bool retrainNeeded = false
     for zone in sr_zones
@@ -235,12 +236,8 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na, 
-          title="PH Marker", style=shape.triangledown, location=location.absolute, 
-          color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na, 
-          title="PL Marker", style=shape.triangleup, location=location.absolute, 
-          color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
