@@ -72,3 +72,6 @@ Provides a logistic function and log-loss calculation used by the indicators.
    ```
 
    Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.
+
+## Ajustes Visuais e Customização
+- Agora é possível parametrizar a largura dos boxes de confluência através do input "Confluence Box Width" no indicador. Essa mudança visa melhorar a adaptação visual conforme o perfil do ativo.

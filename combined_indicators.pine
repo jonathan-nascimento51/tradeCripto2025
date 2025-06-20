@@ -1,53 +1,60 @@
 //@version=6
 // =============================================================================
-//  Combined S/R + Fib (Volatility Zone v7) - Visual Enhancement
-//  ▸ AVALIAÇÃO: Melhoria visual das zonas de volatilidade.
-//  ▸ Implementa uma linguagem visual progressiva para o ciclo de vida das zonas:
-//    1. Ativa: Sutil, com preenchimento transparente.
-//    2. Reteste: Adiciona um rótulo de contagem.
-//    3. Validada: Torna-se mais opaca e destacada na cor de validação.
-//    4. Rompida: Desvanece, torna-se tracejada e para de se estender.
-//  ▸ By: AvaliadorVisualZonasSR (Baseado no original de Trader-Cientista de Dados)
+//  Combined S/R + Fib (Volatility Zone v7) - Visual Refinement [Corrected]
+//  ▸ AVALIAÇÃO: Refinamento visual com foco em clareza e contexto.
+//  ▸ Implementa marcadores de origem para zonas S/R e âncoras Fibonacci.
+//  ▸ Melhora o ciclo de vida visual das zonas (Ativa → Validada → Rompida).
+//  ▸ Adiciona tooltips contextuais para zonas validadas e de confluência.
+//  ▸ By: RefinadorVisualZonasPine
 // =============================================================================
 import jonathanmoletta17/LogisticRegressionUtils/1 as lr
 import jonathanmoletta17/PivotUtils/2 as pv
 import jonathanmoletta17/ConfluenceLib/2 as conf
 
-indicator("Combined S/R + Fib (Volatility Zone v7) [Visual+]", "CSFZ_v7_Visual+", overlay = true, max_lines_count = 500, max_labels_count = 300, max_boxes_count = 100)
+indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7_Corrected", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
+
+// Declarar cores globalmente
+var color borderColorRes = na
+var color borderColorSup = na
+var color borderColorValid = na
+var color borderColorBroken = na
 
 // ⁕ Subsistemas
-srEnabled = input.bool(true, "Enable Support/Resistance", group = "Subsystems")
-fibEnabled = input.bool(true, "Enable Fibonacci Extensions", group = "Subsystems")
-confEnabled = input.bool(true, "Enable Confluence Zones", group = "Subsystems")
+srEnabled = input.bool(true, "Enable Support/Resistance", group="Subsystems")
+fibEnabled = input.bool(true, "Enable Fibonacci Extensions", group="Subsystems")
+confEnabled = input.bool(true, "Enable Confluence Zones", group="Subsystems")
 
 // ⁕ Parâmetros S/R
-length = input.int(14, "Pivot Length", group = "Support/Resistance")
+length = input.int(14, "Pivot Length", group="Support/Resistance")
 probThreshold = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Support/Resistance")
 retestCount = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
 volatilityBandATR = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
 
 // ⁕ Parâmetros de Confluência
-confThresholdATR = input.float(0.25, "Confluence ATR Threshold", group = "Confluence Engine")
-w1 = input.float(0.4, "Weight - Distance", group = "Confluence Engine")
-w2 = input.float(0.3, "Weight - Signal", group = "Confluence Engine")
-w3 = input.float(0.2, "Weight - Retests", group = "Confluence Engine")
-w4 = input.float(0.1, "Weight - Temporal", group = "Confluence Engine")
+confThresholdATR = input.float(0.25, "Confluence ATR Threshold", group="Confluence Engine")
+confluenceBoxWidth = input.int(10, "Confluence Box Width (bars)", minval=1, group="Confluence Engine")
+w1 = input.float(0.4, "Weight - Distance", group="Confluence Engine")
+w2 = input.float(0.3, "Weight - Signal", group="Confluence Engine")
+w3 = input.float(0.2, "Weight - Retests", group="Confluence Engine")
+w4 = input.float(0.1, "Weight - Temporal", group="Confluence Engine")
 
-// ⁕ Estilos (inputs de cor, etc. permanecem os mesmos)
-// VISUAL UPGRADE: Ajustado a transparência padrão para uma aparência mais limpa.
-// Zonas ativas são mais sutis (92%), validadas mais fortes (80%), e rompidas quase invisíveis (95%).
-srColorRes = input.color(color.new(color.red, 92), "Resistance (Active Fill)", group = "Style – S/R")
-srColorSup = input.color(color.new(color.green, 92), "Support (Active Fill)", group = "Style – S/R")
-srColorValid = input.color(color.new(color.orange, 80), "Validated Zone", group = "Style – S/R")
-srColorBroken = input.color(color.new(color.gray, 95), "Broken Zone", group = "Style – S/R")
-// ... outros inputs de estilo ...
-fibBaseColor = input.color(color.new(color.gray, 40), "≤1× Base color", group = "Style – Fib")
-fibExtUpCol = input.color(color.new(color.green, 0), ">1× Up color", group = "Style – Fib")
-fibExtDnCol = input.color(color.new(color.red, 0), ">1× Down color", group = "Style – Fib")
-fibWidth = input.int(1, "Line width", minval = 1, maxval = 4, group = "Style – Fib")
-labelSizeOpt = input.string("tiny", "Label size", options = ["tiny", "small", "normal"], group = "Style – Fib")
-labelOffset = input.int(2, "Label offset (bars)", minval = 0, group = "Style – Fib")
+// ⁕ Estilos – S/R
+srColorRes = input.color(color.new(color.red, 92), "Resistance (Active Fill)", group="Style – S/R")
+srColorSup = input.color(color.new(color.green, 92), "Support (Active Fill)", group="Style – S/R")
+srColorValid = input.color(color.new(color.orange, 75), "Validated Zone", group="Style – S/R")
+srColorBroken = input.color(color.new(color.gray, 95), "Broken Zone", group="Style – S/R")
 
+// ⁕ Estilos – Fibonacci
+fibBaseColor = input.color(color.new(color.gray, 40), "≤1× Base color", group="Style – Fib")
+fibExtUpCol = input.color(color.new(color.green, 0), ">1× Up color", group="Style – Fib")
+fibExtDnCol = input.color(color.new(color.red, 0), ">1× Down color", group="Style – Fib")
+fibWidth = input.int(1, "Line width", minval=1, maxval=4, group="Style – Fib")
+labelSizeOpt = input.string("tiny", "Label size", options=["tiny", "small", "normal"], group="Style – Fib")
+labelOffset = input.int(2, "Label offset (bars)", minval=0, group="Style – Fib")
+
+// REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
+showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
+showFibAnchors = input.bool(true, "Show Fibonacci Anchors", group="Style – Refinements")
 
 // ─────────────────────────── Estruturas de Dados (UDT) ─────────────────────
 const int MAX_SR_ZONES = 30
@@ -78,7 +85,7 @@ var SR_Zone[] sr_zones = array.new<SR_Zone>()
 var FibLevel[] fib_levels = array.new<FibLevel>()
 var box[] confBoxes = array.new_box()
 
-// ─────────────────────────── Funções de Gerenciamento ──────────────────────
+// ─────────────────────────── Funções de Gerenciamento ────────────────
 f_pushZone(SR_Zone zone) =>
     array.push(sr_zones, zone)
     if array.size(sr_zones) > MAX_SR_ZONES
@@ -105,8 +112,7 @@ f_clearFibLevels() =>
 f_pushBox(box b) =>
     array.push(confBoxes, b)
     if array.size(confBoxes) > MAX_CONF_BOXES
-        box old = array.shift(confBoxes)
-        box.delete(old)
+        box.delete(array.shift(confBoxes))
 
 f_clearBoxes() =>
     for b in confBoxes
@@ -119,33 +125,33 @@ pl = pv.pivotLow(low, length)
 rsi = ta.rsi(close, length)
 atr = ta.atr(length)
 
+// --- Estado Global da Origem do Pivô ---
+// Flags para marcar se um pivô foi formado na barra atual
+bool isPivotHighOrigin = not na(ph) and na(pv.pivotHigh(high[1], length))
+bool isPivotLowOrigin  = not na(pl) and na(pv.pivotLow(low[1], length))
+
 // --- Lógica de Suporte / Resistência ---
 if srEnabled
     var float atr_offset = atr * volatilityBandATR
 
-    // VISUAL UPGRADE: Definição de cores para bordas, tornando-as ligeiramente mais fortes que o preenchimento.
-    color borderColorRes = color.new(srColorRes, 75)
-    color borderColorSup = color.new(srColorSup, 75)
-    color borderColorValid = color.new(srColorValid, 60)
-    color borderColorBroken = color.new(srColorBroken, 85)
+    borderColorRes := color.new(srColorRes, 75)
+    borderColorSup := color.new(srColorSup, 75)
+    borderColorValid := color.new(srColorValid, 50)
+    borderColorBroken := color.new(srColorBroken, 85)
 
-    // CRIAÇÃO de novas zonas de volatilidade (Resistência)
     if not na(ph)
-        float prob = lr.logistic(rsi > 50 ? 1:-1, math.abs(close-open) > atr ? 1:-1, 1.0, 1.0, 1.0)
+        float prob = lr.logistic(rsi > 50 ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, 1.0, 1.0, 1.0)
         if prob > probThreshold
             float upper = ph + atr_offset
             float lower = ph - atr_offset
-            // VISUAL UPGRADE: Bordas sólidas (width=1) para um look mais moderno.
             line l_u = line.new(bar_index - length, upper, bar_index, upper, color=borderColorRes, extend=extend.right, style=line.style_solid, width=1)
             line l_l = line.new(bar_index - length, lower, bar_index, lower, color=borderColorRes, extend=extend.right, style=line.style_solid, width=1)
             linefill lf = linefill.new(l_u, l_l, color=srColorRes)
-            // O rótulo inicial é invisível e será ativado no primeiro reteste.
             label newLbl = label.new(bar_index, ph, "", style=label.style_none)
             f_pushZone(SR_Zone.new(time, bar_index, l_u, l_l, lf, newLbl, ph, prob, false))
 
-    // CRIAÇÃO de novas zonas de volatilidade (Suporte)
     if not na(pl)
-        float prob = lr.logistic(rsi > 50 ? 1:-1, math.abs(close-open) > atr ? 1:-1, 1.0, 1.0, 1.0)
+        float prob = lr.logistic(rsi > 50 ? 1 : -1, math.abs(close - open) > atr ? 1 : -1, 1.0, 1.0, 1.0)
         if prob > probThreshold
             float upper = pl + atr_offset
             float lower = pl - atr_offset
@@ -155,17 +161,14 @@ if srEnabled
             label newLbl = label.new(bar_index, pl, "", style=label.style_none)
             f_pushZone(SR_Zone.new(time, bar_index, l_u, l_l, lf, newLbl, pl, prob, true))
 
-    // ATUALIZAÇÃO do ciclo de vida das zonas (retestes, validação e quebras)
     for zone in sr_zones
         if zone.status != "Broken"
-            isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
-            isBroken = zone.isSupport ? close < zone.level : close > zone.level
+            bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
+            bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
             
             if isRetest
                 zone.retests += 1
-                // VISUAL UPGRADE: Rótulo mais informativo e visualmente agradável.
-                // Aparece no primeiro reteste e atualiza a contagem.
-                zone.lbl.set_text(" " + str.tostring(zone.retests) + "x ")
+                zone.lbl.set_text(str.tostring(zone.retests) + 'x')
                 zone.lbl.set_x(bar_index + 1)
                 zone.lbl.set_y(zone.level)
                 zone.lbl.set_style(label.style_label_left)
@@ -175,40 +178,63 @@ if srEnabled
 
                 if zone.retests >= retestCount and zone.status != "Validated"
                     zone.status := "Validated"
-                    // VISUAL UPGRADE: Fortalece a zona visualmente ao validar.
                     zone.line_upper.set_color(borderColorValid)
                     zone.line_lower.set_color(borderColorValid)
-                    zone.fill_obj.set_color(srColorValid) // Cor mais opaca
-                    zone.lbl.set_text(" ✔ Val. ")
+                    zone.line_upper.set_width(2)
+                    zone.line_lower.set_width(2)
+                    zone.fill_obj.set_color(srColorValid)
+                    zone.lbl.set_text("✔")
                     zone.lbl.set_color(color.new(srColorValid, 25))
                     zone.lbl.set_textcolor(color.white)
+                    zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
             if isBroken
                 zone.status := "Broken"
-                // VISUAL UPGRADE: "Arquiva" a zona rompida.
-                // Torna as bordas tracejadas e cinzas, e remove a extensão futura.
                 zone.line_upper.set_color(borderColorBroken)
                 zone.line_lower.set_color(borderColorBroken)
                 zone.line_upper.set_style(line.style_dashed)
                 zone.line_lower.set_style(line.style_dashed)
-                zone.fill_obj.set_color(srColorBroken) // Preenchimento quase invisível
+                zone.fill_obj.set_color(srColorBroken)
                 zone.line_upper.set_extend(extend.none)
                 zone.line_lower.set_extend(extend.none)
-                // Atualiza a posição da linha para terminar na barra de rompimento.
                 zone.line_upper.set_x2(bar_index)
                 zone.line_lower.set_x2(bar_index)
-                // Rótulo de rompimento.
-                zone.lbl.set_text(" B ")
-                zone.lbl.set_x(bar_index)
+                zone.lbl.set_text("B")
                 zone.lbl.set_textcolor(srColorBroken)
                 zone.lbl.set_color(color.new(color.gray, 80))
+                zone.lbl.set_tooltip("Zona rompida.")
+else
+    // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
+    isPivotHighOrigin := false
+    isPivotLowOrigin := false
+
+// --- Plotagem dos Marcadores de Pivô ---
+// Só plota na barra de formação do pivô
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na, 
+          title="PH Marker", style=shape.triangledown, location=location.absolute, 
+          color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na, 
+          title="PL Marker", style=shape.triangleup, location=location.absolute, 
+          color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
 var float lastLow = na
-if not na(ph)
-    lastHigh := ph
-if not na(pl)
-    lastLow := pl
+var label fibAnchorHighLabel = na
+var label fibAnchorLowLabel = na
+
+// Só atualiza âncora quando um novo pivô é formado
+if bar_index >= length
+    if isPivotHighOrigin
+        lastHigh := ph
+        if showFibAnchors and fibEnabled
+            label.delete(fibAnchorHighLabel)
+            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=label.style_none, textcolor=color.new(color.white, 30), size=size.small, tooltip="Âncora Superior Fibonacci")
+    if isPivotLowOrigin
+        lastLow := pl
+        if showFibAnchors and fibEnabled
+            label.delete(fibAnchorLowLabel)
+            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=label.style_none, textcolor=color.new(color.white, 30), size=size.small, tooltip="Âncora Inferior Fibonacci")
+
 if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     f_clearFibLevels()
     float diff = math.abs(lastHigh - lastLow)
@@ -225,22 +251,21 @@ if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
         array.push(fib_levels, FibLevel.new(ln, lb, y, r, bar_index))
 else if not fibEnabled
     f_clearFibLevels()
+    label.delete(fibAnchorHighLabel)
+    label.delete(fibAnchorLowLabel)
 
-// --- MOTOR DE CONFLUÊNCIA ---
-if confEnabled and srEnabled and fibEnabled
-    if barstate.isconfirmed
-        f_clearBoxes()
-        if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
-            for zone in sr_zones
-                if zone.status != "Broken"
-                    for fib in fib_levels
-                        if math.abs(zone.level - fib.level) < atr * confThresholdATR
-                            conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4)
-                            conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
-                            float score = result.confluence_weight
-                            if score > 0
-                                color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
-                                box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + 20, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="Conf: " + str.tostring(score, "#.##"), text_halign=text.align_center)
-                                f_pushBox(confBox)
+if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
+    for zone in sr_zones
+        if zone.status != "Broken"
+            for fib in fib_levels
+                if math.abs(zone.level - fib.level) < atr * confThresholdATR
+                    conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4)
+                    conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
+                    float score = result.confluence_weight
+                    if score > 0
+                        color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
+                        string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fib.level) + " (" + str.tostring(fib.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
+                        box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + confluenceBoxWidth, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                        f_pushBox(confBox)
 else
     f_clearBoxes()
