@@ -104,13 +104,16 @@ var box[] confBoxes = array.new_box()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
 var float[] trainY  = array.new<float>()
+// Flag that indicates if the logistic model has been trained for the
+// current set of samples.
+var bool trained = false
 
 // Determine which weights will be used for the logistic model. If a comma
 // separated string is provided via input, parse it. Otherwise, attempt to
 // train using the collected pivot history.
-float finalW0 = logW0
-float finalW1 = logW1
-float finalW2 = logW2
+var float finalW0 = logW0
+var float finalW1 = logW1
+var float finalW2 = logW2
 if useTrainedWeights
     if str.length(weightsStr) > 0
         string[] parts = str.split(weightsStr, ",")
@@ -118,11 +121,19 @@ if useTrainedWeights
             finalW0 := str.tonumber(array.get(parts, 0))
             finalW1 := str.tonumber(array.get(parts, 1))
             finalW2 := str.tonumber(array.get(parts, 2))
-    else if array.size(trainY) > 0
+        trained := true
+    else if (not trained) and array.size(trainY) > 0
         lt.TrainResult res = lt.gradientDescent(trainX1, trainX2, trainY, trainRate, trainEpochs)
         finalW0 := res.w0
         finalW1 := res.w1
         finalW2 := res.w2
+        trained := true
+else
+    // When not using trained weights, fall back to the user inputs every bar.
+    finalW0 := logW0
+    finalW1 := logW1
+    finalW2 := logW2
+    trained := false
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
 f_pushZone(SR_Zone zone) =>
@@ -209,6 +220,7 @@ f_handleRetest(SR_Zone zone) =>
         array.push(trainX1, zone.x1)
         array.push(trainX2, zone.x2)
         array.push(trainY, 1.0)
+        trained := false
 
 // Marca uma zona como rompida
 f_markBroken(SR_Zone zone) =>
@@ -229,7 +241,8 @@ f_markBroken(SR_Zone zone) =>
     if zone.retests < retestCount
         array.push(trainX1, zone.x1)
         array.push(trainX2, zone.x2)
-        array.push(trainY, 0.0)    
+        array.push(trainY, 0.0)
+        trained := false
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
