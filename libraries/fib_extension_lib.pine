@@ -11,27 +11,31 @@ export type FibLevel
     float ratio       // Fibonacci ratio used
     int   bar_index   // Bar index where the line/label were created
 
-// Predefined Fibonacci ratios for extension calculation. Arrays cannot be
-// exported directly, so we keep the constant internal and expose a getter
-// for read-only access.
-const float[] RATIOS = array.from(0.236, 0.382, 0.5, 0.618, 0.786, 1.0, 1.272, 1.414, 1.618, 2.0)
+// ───────── Utilidades internas (não-exportadas) ─────────
+_ratios() =>          // ← local helper, NÃO exportado
+    // A cada chamada cria (ou, se quiser, use `var` local para criar 1× só)
+    array.from(0.236, 0.382, 0.5, 0.618, 0.786,
+               1.0, 1.272, 1.414, 1.618, 2.0)
 
-// Returns the predefined ratios array so callers can iterate the values
-// without modifying the contents.
-export float[] getRatios() => RATIOS
+// ───────── API pública ─────────
+
+// ① Getter seguro: sempre devolve um novo array, sem capturar global
+export getRatios() =>
+    array.from(0.236, 0.382, 0.5, 0.618, 0.786,
+               1.0, 1.272, 1.414, 1.618, 2.0)
 
 // -----------------------------------------------------------------------------
 // calcLevel
 // Returns the price level for the given Fibonacci ratio.
 // -----------------------------------------------------------------------------
-export float calcLevel(float lastHigh, float lastLow, float diff, bool isUp, float ratio) =>
+export calcLevel(float lastHigh, float lastLow, float diff, bool isUp, float ratio) =>
     isUp ? lastHigh + diff * ratio : lastLow - diff * ratio
 
 // -----------------------------------------------------------------------------
 // createLine
 // Draws a single horizontal line for a Fibonacci level.
 // -----------------------------------------------------------------------------
-export line createLine(int barIndex, float y, color lnCol, bool isExt, int width) =>
+export createLine(int barIndex, float y, color lnCol, bool isExt, int width) =>
     line.new(barIndex, y, barIndex + 1, y,
              color=lnCol,
              style=isExt ? line.style_solid : line.style_dotted,
@@ -42,7 +46,7 @@ export line createLine(int barIndex, float y, color lnCol, bool isExt, int width
 // createLabel
 // Places a label near the Fibonacci line with the level price and ratio.
 // -----------------------------------------------------------------------------
-export label createLabel(int barIndex, float y, float ratio, bool leftSide, color lnCol, string lblSize, int lblOffset) =>
+export createLabel(int barIndex, float y, float ratio, bool leftSide, color lnCol, string lblSize, int lblOffset) =>
     string lblTxt = str.tostring(ratio * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
     label.new(barIndex + (leftSide ? lblOffset : -lblOffset), y,
               text=lblTxt,
@@ -71,8 +75,8 @@ export drawLevels(FibLevel[] levels, int barIndex, float lastHigh, float lastLow
     clearLevels(levels)
     float diff = math.abs(lastHigh - lastLow)
     bool isUp = lastHigh > lastLow
-    for idx = 0 to array.size(RATIOS) - 1
-        float r = array.get(RATIOS, idx)
+    for idx = 0 to array.size(_ratios()) - 1
+        float r = array.get(_ratios(), idx)
         float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
         bool isExt = r > 1.0
         color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor

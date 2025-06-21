@@ -20,7 +20,6 @@ import "./libraries/conf_box_lib.pine" as cb
 
 // Retrieve centralized styling options. Scripts can still reference the
 // individual constants if desired but using this object keeps the code tidy.
-sty.Styles styles = sty.getStyles()
 
 indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
 
@@ -62,7 +61,6 @@ kDist = input.float(1.0, "Exp K Dist", group="Confluence Engine")
 kTemp = input.float(1.0, "Exp K Temp", group="Confluence Engine")
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib)
-// Use the exported constants directly so `input.color` receives a `const color`.
 srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
 srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
 srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
@@ -73,7 +71,9 @@ fibBaseColor  = input.color(sty.FIB_BASE_COLOR, "Fib Base Color", group="Style �
 fibExtUpCol   = input.color(sty.FIB_EXT_UP_COL, "Fib Extension Up Color", group="Style – Fibonacci")
 fibExtDnCol   = input.color(sty.FIB_EXT_DN_COL, "Fib Extension Down Color", group="Style – Fibonacci")
 fibWidth      = input.int(sty.FIB_WIDTH, "Fib Line Width", minval=1, group="Style – Fibonacci")
-labelSizeOpt  = input.string(sty.LABEL_SIZE, "Fib Label Size", options=[size.tiny, size.small, size.normal, size.large, size.huge], group="Style – Fibonacci")
+labelSizeOpt  = input.string(sty.LABEL_SIZE, "Fib Label Size",
+                             options=[size.tiny, size.small, size.normal, size.large, size.huge],
+                             group="Style – Fibonacci")
 labelOffset   = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
@@ -217,12 +217,12 @@ if bar_index >= length
         lastHigh := ph
         if showFibAnchors and fibEnabled
             label.delete(fibAnchorHighLabel)
-            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=styles.anchor_style, textcolor=styles.anchor_text_color, size=styles.anchor_size, tooltip="Âncora Superior Fibonacci")
+            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
         if showFibAnchors and fibEnabled
             label.delete(fibAnchorLowLabel)
-            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=styles.anchor_style, textcolor=styles.anchor_text_color, size=styles.anchor_size, tooltip="Âncora Inferior Fibonacci")
+            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabled and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     fib.drawLevels(fib_levels, bar_index, lastHigh, lastLow, fibBaseColor, fibExtUpCol, fibExtDnCol, fibWidth, labelSizeOpt, labelOffset)
@@ -235,15 +235,15 @@ if confEnabled
     if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
         for zone in sr_zones
             if zone.status != "Broken"
-                for fib in fib_levels
-                    if math.abs(zone.level - fib.level) < confThreshPx
-                        conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
+                for fibo in fib_levels
+                    if math.abs(zone.level - fibo.level) < confThreshPx
+                        conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fibo.level, zone.level, zone.probability, atr, fibo.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
                         conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
                         float score = result.confluence_weight
                         if score > 0
                             color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
-                            string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fib.level) + " (" + str.tostring(fib.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
-                            box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + confluenceBoxWidth, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                            string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fibo.level) + " (" + str.tostring(fibo.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
+                            box confBox = box.new(bar_index, math.max(zone.level, fibo.level), bar_index + confluenceBoxWidth, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
     else
         cb.clearBoxes(confBoxes)
