@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Allow running the test file directly without modifying PYTHONPATH
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 import tools.context_utils as cu
 
 # Display the first few files inside the libraries directory
