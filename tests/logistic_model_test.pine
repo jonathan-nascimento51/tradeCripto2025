@@ -9,7 +9,7 @@ float[] x2 = array.from(1.0, 1.0, -1.0, -1.0)
 float[] x3 = array.from(1.0, 1.0, 1.0, -1.0)
 float[] y  = array.from(1.0, 0.0, 1.0, 0.0)
 
-// Training with epochs <= 0 should return the initial weights and emit a warning.
+// Training with epochs <= 0 should return the initial weights and emit a runtime error.
 float initW0 = 0.2
 float initW1 = -0.1
 float initW2 = 0.05
@@ -24,5 +24,5 @@ bool ok = not na(res.loss) and res.w0 == initW0 and res.w1 == initW1 and res.w2 
 if ok
     label.new(bar_index, res.loss, 'PASS', style=label.style_label_up, color=color.green)
 
-// Expected output: Warning about epochs <= 0 in the console and a green 'PASS' label
+// Expected output: runtime.error about epochs must be > 0 and a green 'PASS' label
 // confirming that the returned weights equal the initial values.
