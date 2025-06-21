@@ -1,0 +1,151 @@
+//@version=6
+library("FibConfluenceEngine", true)
+
+import "./pivot_utils.pine" as pv
+import "./fib_extension_lib.pine" as fe
+import "./style_lib.pine" as st
+
+// -----------------------------------------------------------------------------
+//  Swing structure to store pivot pairs
+// -----------------------------------------------------------------------------
+export type Swing
+    int start_idx
+    int end_idx
+    float high
+    float low
+    bool is_up
+
+// -----------------------------------------------------------------------------
+//  Cluster structure representing a group of nearby Fibonacci levels
+// -----------------------------------------------------------------------------
+export type Cluster
+    float lower
+    float upper
+    float score
+
+// -----------------------------------------------------------------------------
+// detectSwings
+// Detects new swings using pivot highs/lows and stores them in the array.
+// maxSwings controls how many swings are kept.
+// Returns true when a new swing was added.
+// -----------------------------------------------------------------------------
+export detectSwings(Swing[] swings, float highSrc, float lowSrc, int len, int maxSwings) =>
+    float ph = pv.pivotHigh(highSrc, len)
+    float pl = pv.pivotLow(lowSrc, len)
+    var float lastHigh = na
+    var float lastLow  = na
+    var int   lastHighIdx = na
+    var int   lastLowIdx  = na
+    bool added = false
+    if not na(ph)
+        lastHigh := ph
+        lastHighIdx := bar_index - len
+        if not na(lastLow) and lastLowIdx < lastHighIdx
+            Swing sw = Swing.new(lastLowIdx, lastHighIdx, lastHigh, lastLow, true)
+            array.push(swings, sw)
+            if array.size(swings) > maxSwings
+                array.shift(swings)
+            added := true
+    if not na(pl)
+        lastLow := pl
+        lastLowIdx := bar_index - len
+        if not na(lastHigh) and lastHighIdx < lastLowIdx
+            Swing sw = Swing.new(lastHighIdx, lastLowIdx, lastHigh, lastLow, false)
+            array.push(swings, sw)
+            if array.size(swings) > maxSwings
+                array.shift(swings)
+            added := true
+    added
+
+// -----------------------------------------------------------------------------
+// _ratioWeight
+// Simple helper giving more importance to common Fib ratios around 1.0
+// -----------------------------------------------------------------------------
+_ratioWeight(float r) => r < 1 ? 1 - r : 1 / r
+
+// -----------------------------------------------------------------------------
+// getFibLevels
+// Generates Fibonacci levels and their weights for a list of swings.
+// Returns a tuple of price array and weight array.
+// -----------------------------------------------------------------------------
+export getFibLevels(Swing[] swings) =>
+    float[] prices = array.new<float>()
+    float[] weights = array.new<float>()
+    float[] ratios = fe.getRatios()
+    int total = array.size(swings)
+    for idx = 0 to total - 1
+        Swing sw = array.get(swings, idx)
+        float diff = math.abs(sw.high - sw.low)
+        bool isUp = sw.high > sw.low
+        float swingW = (idx + 1) / float(total)
+        for j = 0 to array.size(ratios) - 1
+            float r = array.get(ratios, j)
+            float lvl = fe.calcLevel(sw.high, sw.low, diff, isUp, r)
+            array.push(prices, lvl)
+            array.push(weights, swingW * _ratioWeight(r))
+    [prices, weights]
+
+// -----------------------------------------------------------------------------
+// clusterLevels
+// Groups nearby levels based on a price threshold and calculates a score.
+// Score is the average weight of all levels in the cluster.
+// -----------------------------------------------------------------------------
+export clusterLevels(float[] levels, float[] weights, float threshold) =>
+    Cluster[] clusters = array.new<Cluster>()
+    int n = array.size(levels)
+    if n == 0
+        clusters
+    else
+        int[] idxs = array.new<int>()
+        for i = 0 to n - 1
+            array.push(idxs, i)
+        array.sort(idxs, (a, b) =>
+            float pa = array.get(levels, a)
+            float pb = array.get(levels, b)
+            pa < pb ? -1 : pa > pb ? 1 : 0)
+        float curLow  = array.get(levels, array.get(idxs, 0))
+        float curHigh = curLow
+        float curScore = array.get(weights, array.get(idxs, 0))
+        int   curCount = 1
+        for k = 1 to n - 1
+            int id = array.get(idxs, k)
+            float price = array.get(levels, id)
+            float w = array.get(weights, id)
+            if math.abs(price - curHigh) <= threshold
+                curLow  := math.min(curLow, price)
+                curHigh := math.max(curHigh, price)
+                curScore += w
+                curCount += 1
+            else
+                array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
+                curLow := price
+                curHigh := price
+                curScore := w
+                curCount := 1
+        array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
+        clusters
+
+// -----------------------------------------------------------------------------
+// drawClusters
+// Visualizes clusters using boxes with opacity based on the score.
+// boxes array is reused to avoid exceeding the drawing object limit.
+// -----------------------------------------------------------------------------
+export drawClusters(Cluster[] clusters, box[] boxes, int left, int right, color baseColor) =>
+    int needed = array.size(clusters)
+    while array.size(boxes) > needed
+        box.delete(array.pop(boxes))
+    for i = 0 to needed - 1
+        Cluster cl = array.get(clusters, i)
+        float opa = 100 - math.min(math.max(cl.score * 100, 0), 100)
+        color bg = color.new(baseColor, opa)
+        if i >= array.size(boxes)
+            box b = box.new(left, cl.upper, right, cl.lower,
+                             bgcolor=bg, border_color=baseColor)
+            array.push(boxes, b)
+        else
+            box b = array.get(boxes, i)
+            b.set_left(left)
+            b.set_right(right)
+            b.set_top(cl.upper)
+            b.set_bottom(cl.lower)
+            b.set_bgcolor(bg)

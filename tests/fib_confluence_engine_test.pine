@@ -1,0 +1,21 @@
+//@version=6
+indicator('Fib Confluence Engine Test', overlay=true)
+import "../libraries/fib_confluence_engine.pine" as fce
+import "../libraries/style_lib.pine" as st
+
+length = input.int(5, 'Pivot Length')
+clusterThresh = input.float(ta.atr(14) * 0.25, 'Cluster Threshold')
+
+st.Styles styles = st.getStyles()
+
+var fce.Swing[] swings = array.new<fce.Swing>()
+var box[] boxes = array.new<box>()
+
+fce.detectSwings(swings, high, low, length, 5)
+[float[] levels, float[] weights] = fce.getFibLevels(swings)
+fce.Cluster[] clusters = fce.clusterLevels(levels, weights, clusterThresh)
+left = bar_index - 30
+fce.drawClusters(clusters, boxes, left, bar_index, styles.fib_base_color)
+
+plot(close)
+// Expected output: gradient boxes highlighting clustered Fibonacci levels.
