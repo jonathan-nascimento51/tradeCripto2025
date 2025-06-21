@@ -1,5 +1,5 @@
 //@version=6
-library(title="PivotUtils", overlay=false)
+library(title="PivotUtils", true)
 
 // Returns a pivot‐high value using ta.pivothigh
 export pivotHigh(float src, int len) =>

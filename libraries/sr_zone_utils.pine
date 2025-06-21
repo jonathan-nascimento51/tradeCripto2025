@@ -1,5 +1,5 @@
 //@version=6
-library("SRZoneUtils", overlay=false)
+library("SRZoneUtils", true)
 
 // ---- User defined type representing a support/resistance zone ----
 export type SR_Zone

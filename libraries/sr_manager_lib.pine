@@ -1,6 +1,6 @@
 //@version=6
 
-library("SRManagerLib", overlay=false)
+library("SRManagerLib", true)
 
 import "./sr_zone_utils.pine" as sru
 import "./logistic_model_lib.pine" as lm

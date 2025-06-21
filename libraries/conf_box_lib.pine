@@ -1,5 +1,5 @@
 //@version=6
-library("ConfBoxLib", overlay=false)
+library("ConfBoxLib", true)
 
 // -----------------------------------------------------------------------------
 // pushBox

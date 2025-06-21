@@ -1,7 +1,7 @@
 //@version=6
 
 // Utility functions for drawing Fibonacci extension levels
-library("FibExtensionLib", overlay=false)
+library("FibExtensionLib", true)
 
 // Defines the FibLevel structure used to track drawn Fibonacci lines and labels
 export type FibLevel

@@ -1,5 +1,5 @@
 //@version=6
-library("StyleLib", overlay=false)
+library("StyleLib", true)
 
 // ---- Support/Resistance zone colors ----
 export const color SR_COLOR_RES    = color.new(color.red, 92)
