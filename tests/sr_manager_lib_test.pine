@@ -7,4 +7,6 @@ var sru.SR_Zone[] zones = array.new<sru.SR_Zone>()
 
 float level = ta.pivothigh(high, 5, 5)
 if not na(level)
-    srm.createZone(zones, level, false, color.new(color.red,90), color.red, ta.rsi(close,14), 50, ta.atr(14), ta.sma(volume,14), close, open, volume, 0,1,1,0, 0.5, 0.15, 5, 5)
+    srm.createZone(zones, level, false, color.new(color.red,90), color.red,
+     ta.rsi(close,14), 50, ta.atr(14), ta.sma(volume,14),
+     close, open, volume, 0,1,1,0, 0.5, 0.15, 5, 5)
