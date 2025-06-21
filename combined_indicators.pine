@@ -197,6 +197,7 @@ else
     // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
     isPivotHighOrigin := false
     isPivotLowOrigin := false
+    sru.f_clearZones(sr_zones)
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
