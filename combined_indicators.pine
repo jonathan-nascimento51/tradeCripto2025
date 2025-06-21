@@ -169,7 +169,7 @@ if srEnabled
     borderColorSup := color.new(srColorSup, 75)
     borderColorValid := color.new(srColorValid, 50)
     borderColorBroken := color.new(srColorBroken, 85)
-    
+
     srm.createZone(sr_zones, ph, false, srColorRes, borderColorRes, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
     srm.createZone(sr_zones, pl, true, srColorSup, borderColorSup, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
 
