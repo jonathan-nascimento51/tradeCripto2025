@@ -113,8 +113,20 @@ f_calculate() =>
 
 [endPrice, span] = f_calculate()
 
+// Show a warning instead of halting execution when there is not enough data
+var label warnLbl = na
 if barstate.islast and na(endPrice)
-    runtime.error("Dados insuficientes para calcular Auto Fib Extension. Ajuste o depth ou timeframe.")
+    // Display a persistent label on the latest bar
+    warnLbl := na(warnLbl) ? label.new(bar_index, close, "Mais hist\u00f3rico\nrequerido",
+                                       color=color.new(color.red, 0),
+                                       style=label.style_label_down) : warnLbl
+    label.set_xy(warnLbl, bar_index, close)
+    label.set_text(warnLbl, "Mais hist\u00f3rico\nrequerido")
+    alert("Auto Fib Extension requer hist\u00f3rico adicional", alert.freq_once_per_bar_close)
+else
+    if not na(warnLbl)
+        label.delete(warnLbl)
+        warnLbl := na
 
 // === DRAW FIB LEVELS ===
 var line lastLine = na
