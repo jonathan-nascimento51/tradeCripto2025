@@ -138,3 +138,15 @@ These allow building a compact "context pack" without reading entire files.
   between two keywords.
 - `get_file_structure(directory)` lists files in a directory, giving a quick overview
   of the project layout.
+
+## Automation Workflow
+To streamline repository updates, the script `tools/auto_commit_push.py` automates
+staging, committing and pushing changes.
+
+### Usage
+```bash
+python tools/auto_commit_push.py "Fix typo" --agent impl_codex
+```
+This command stages all modifications, creates the commit `Fix typo – agent::impl_codex`
+and pushes it to the current branch on the `origin` remote. Use `--files`, `--branch`
+or `--remote` for finer control.
