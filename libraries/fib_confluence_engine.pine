@@ -3,7 +3,6 @@ library("FibConfluenceEngine", true)
 
 import "./pivot_utils.pine" as pv
 import "./fib_extension_lib.pine" as fe
-import "./style_lib.pine" as st
 
 // -----------------------------------------------------------------------------
 //  Swing structure to store pivot pairs
