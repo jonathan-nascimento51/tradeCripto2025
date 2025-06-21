@@ -1,0 +1,11 @@
+{
+  "name": "Jonathan Codespace",
+  "dockerFile": "Dockerfile",
+  "build": {
+    "args": {
+      "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+      "REMOTE_URL":   "${localEnv:REMOTE_URL}"
+    }
+  },
+  "postCreateCommand": "bash ./.devcontainer/setup_git.sh"
+}

@@ -155,7 +155,7 @@ or `--remote` for finer control.
 If you cloned the repository without specifying a remote, configure one before pushing:
 
 ```bash
-git remote add origin <your-repo-url>
+git remote add origin <https://github.com/jonathan-nascimento51/tradeCripto2025>
 git push -u origin main
 ```
 
