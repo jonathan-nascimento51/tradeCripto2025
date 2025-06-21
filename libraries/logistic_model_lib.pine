@@ -39,10 +39,11 @@ export type TrainResult
 export gradientDescent(float[] x1, float[] x2, float[] x3, float[] y, float rate, int epochs, float w0Init = 0.0, float w1Init = 0.0, float w2Init = 0.0, float w3Init = 0.0) =>
     // Use the smallest array length to avoid out-of-range errors    
     int n = math.min(array.size(x1), math.min(array.size(x2), math.min(array.size(x3), array.size(y))))
+    // `warning()` is not available in Pine v6; use runtime.error to surface issues.    
     if array.size(x1) != array.size(x2) or array.size(x2) != array.size(x3) or array.size(x3) != array.size(y)
-        warning("gradientDescent: input array sizes differ; using min length " + str.tostring(n))
+        runtime.error("gradientDescent: input array sizes differ; using min length " + str.tostring(n))
     if n == 0
-        warning("gradientDescent: no training data provided")    
+        runtime.error("gradientDescent: no training data provided")
     float w0 = w0Init
     float w1 = w1Init
     float w2 = w2Init

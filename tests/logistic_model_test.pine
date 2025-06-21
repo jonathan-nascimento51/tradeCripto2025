@@ -1,5 +1,6 @@
 //@version=6
 indicator('Logistic Model Test', overlay=false)
+// Validates `logistic_model_lib` after replacing warning() with runtime.error.
 import "../libraries/logistic_model_lib.pine" as lm
 
 // Simple hardcoded training data
@@ -8,15 +9,20 @@ float[] x2 = array.from(1.0, 1.0, -1.0, -1.0)
 float[] x3 = array.from(1.0, 1.0, 1.0, -1.0)
 float[] y  = array.from(1.0, 0.0, 1.0, 0.0)
 
-// Start training from small non-zero weights to demonstrate the optional parameters.
-lm.TrainResult res = lm.gradientDescent(x1, x2, x3, y, 0.1, 20, 0.2, -0.1, 0.05, 0.0)
+// Training with epochs <= 0 should return the initial weights and emit a warning.
+float initW0 = 0.2
+float initW1 = -0.1
+float initW2 = 0.05
+float initW3 = 0.0
+lm.TrainResult res = lm.gradientDescent(x1, x2, x3, y, 0.1, 0, initW0, initW1, initW2, initW3)
 
 // Plot training loss to visually confirm descent
 plot(res.loss, title='Training Loss')
 
 // Show PASS label when loss is finite and weights are valid
-bool ok = math.isfinite(res.loss) and not na(res.w0) and not na(res.w1) and not na(res.w2) and not na(res.w3)
+bool ok = math.isfinite(res.loss) and res.w0 == initW0 and res.w1 == initW1 and res.w2 == initW2 and res.w3 == initW3
 if ok
     label.new(bar_index, res.loss, 'PASS', style=label.style_label_up, color=color.green)
 
-// Expected output: 'Training Loss' line plus a green 'PASS' label if training succeeded
+// Expected output: Warning about epochs <= 0 in the console and a green 'PASS' label
+// confirming that the returned weights equal the initial values.
