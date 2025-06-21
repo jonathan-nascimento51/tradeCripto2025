@@ -1,0 +1,52 @@
+//@version=6
+indicator('Combined Indicators Test', overlay=true)
+
+// Import main libraries used by combined_indicators.pine
+import "../libraries/pivot_utils.pine" as pv
+import "../libraries/sr_zone_utils.pine" as sru
+import "../libraries/fib_extension_lib.pine" as fib
+import "../libraries/logistic_model_lib.pine" as lm
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+
+// ---- Inputs ----
+length = input.int(5, 'Pivot Length')
+
+// Containers for drawn objects
+var fib.FibLevel[] fibLevels = array.new<fib.FibLevel>()
+var sru.SR_Zone[]  zones     = array.new<sru.SR_Zone>()
+
+// ---- Simple zone creation using recent pivots ----
+float ph = pv.pivotHigh(high, length)
+float pl = pv.pivotLow(low, length)
+
+if not na(ph)
+    line up1 = line.new(bar_index - length, ph, bar_index, ph, extend=extend.right, color=styles.sr_color_res)
+    line up2 = line.new(bar_index - length, ph - ta.atr(14) * 0.1, bar_index, ph - ta.atr(14) * 0.1, extend=extend.right, color=styles.sr_color_res)
+    linefill lf = linefill.new(up1, up2)
+    label lb = label.new(bar_index, ph, 'R')
+    sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, up1, up2, lf, lb, ph, 0.5, 0,0,0,false), 5)
+
+if not na(pl)
+    line lo1 = line.new(bar_index - length, pl, bar_index, pl, extend=extend.right, color=styles.sr_color_sup)
+    line lo2 = line.new(bar_index - length, pl + ta.atr(14) * 0.1, bar_index, pl + ta.atr(14) * 0.1, extend=extend.right, color=styles.sr_color_sup)
+    linefill lf2 = linefill.new(lo1, lo2)
+    label lb2 = label.new(bar_index, pl, 'S')
+    sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, lo1, lo2, lf2, lb2, pl, 0.5, 0,0,0,true), 5)
+
+// ---- Draw a basic Fibonacci extension from the first bar ----
+if barstate.isfirst
+    fib.drawLevels(fibLevels, bar_index, high, low,
+                  styles.fib_base_color, styles.fib_ext_up_col,
+                  styles.fib_ext_dn_col, styles.fib_width,
+                  styles.label_size, styles.label_offset)
+
+// ---- Example logistic probability ----
+float prob = lm.logistic(close, high - low, volume, 0.0, 0.1, 0.2, 0.05)
+plot(prob, title='Sample Logistic Probability')
+
+// Expected output:
+// - Fibonacci levels appear from the first bar's range.
+// - Zones draw when pivot highs/lows form.
+// - The logistic probability line should oscillate between 0 and 1.

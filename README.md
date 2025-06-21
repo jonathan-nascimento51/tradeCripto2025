@@ -102,6 +102,14 @@ Centralizes all default colors and chart styling options so indicators share the
 ## Baseline de Backtest e Correção de Regressões
 O repositório inclui o arquivo `benchmarks/backtests.json` com as métricas de referência para os principais scripts. O agente `qa_backtest` compara cada nova execução com esses valores e gera um relatório de incidente se o `Profit-factor` cair mais de 2 % abaixo do baseline. Esse relatório é utilizado pelo `prompt_builder` para criar um prompt de correção que será enviado ao `impl_codex`.
 
+### Running a Simple Backtest
+
+1. Abra `combined_indicators.pine` no editor Pine do TradingView.
+2. Configure o gráfico para **BTCUSDT** em 1 hora e volte 180 dias.
+3. Clique em **Add to Chart** dentro da aba *Strategy Tester* para executar o backtest.
+4. Compare `Profit-factor`, `Win-rate` e `Max drawdown` com os valores de `benchmarks/backtests.json`.
+5. Diferenças acima de ~2 % indicam regressão ou melhoria em relação ao baseline.
+
 ## Library Test Scripts
 To validate each helper library independently, open any of the files under `tests/` in the TradingView Pine editor.
 
