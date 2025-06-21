@@ -150,6 +150,16 @@ python tools/auto_commit_push.py "Fix typo" --agent impl_codex
 This command stages all modifications, creates the commit `Fix typo – agent::impl_codex`
 and pushes it to the current branch on the `origin` remote. Use `--files`, `--branch`
 or `--remote` for finer control.
+
+### Setting up a Remote
+If you cloned the repository without specifying a remote, configure one before pushing:
+
+```bash
+git remote add origin <your-repo-url>
+git push -u origin main
+```
+
+`git push` will fail until a remote named `origin` (or the one you specify) is added.
 ### Manual Commit Example
 ```bash
 git add AGENTS.md
