@@ -1,7 +1,6 @@
 //@version=6
 indicator('Fib Confluence Engine Test', overlay=true)
 import "../libraries/fib_confluence_engine.pine" as fce
-import "../libraries/style_lib.pine" as st
 
 length = input.int(5, 'Pivot Length')
 clusterThresh = input.float(ta.atr(14) * 0.25, 'Cluster Threshold')
