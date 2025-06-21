@@ -7,6 +7,7 @@
 library("ConfluenceLib", true)
 import "logistic_model_lib.pine" as lm
 
+
 // UDT PARA DADOS DE ENTRADA
 // Agrupa todos os valores brutos necessários para o cálculo.
 export type ConfluenceInput
