@@ -62,20 +62,19 @@ kDist = input.float(1.0, "Exp K Dist", group="Confluence Engine")
 kTemp = input.float(1.0, "Exp K Temp", group="Confluence Engine")
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib)
-srColorRes    = input.color(styles.sr_color_res,    "Resistance (Active Fill)", group="Style – S/R")
-srColorSup    = input.color(styles.sr_color_sup,    "Support (Active Fill)",  group="Style – S/R")
-srColorValid  = input.color(styles.sr_color_valid,  "Validated Zone",       group="Style – S/R")
-srColorBroken = input.color(styles.sr_color_broken, "Broken Zone",          group="Style – S/R")
+// Use the exported constants directly so `input.color` receives a `const color`.
+srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
+srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
+srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
+srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // ⁕ Estilos – Fibonacci (padrões vindos de StyleLib)
-fibBaseColor  = input.color(styles.fib_base_color, "Fib Base Color", group="Style – Fibonacci")
-fibExtUpCol   = input.color(styles.fib_ext_up_col, "Fib Extension Up Color", group="Style – Fibonacci")
-fibExtDnCol   = input.color(styles.fib_ext_dn_col, "Fib Extension Down Color", group="Style – Fibonacci")
-fibWidth      = input.int(styles.fib_width, "Fib Line Width", minval=1, group="Style – Fibonacci")
-labelSizeOpt  = input.string(styles.label_size, "Fib Label Size",
-                             options=[size.tiny, size.small, size.normal, size.large, size.huge],
-                             group="Style – Fibonacci")
-labelOffset   = input.int(styles.label_offset, "Label offset (bars)", minval=0)
+fibBaseColor  = input.color(sty.FIB_BASE_COLOR, "Fib Base Color", group="Style – Fibonacci")
+fibExtUpCol   = input.color(sty.FIB_EXT_UP_COL, "Fib Extension Up Color", group="Style – Fibonacci")
+fibExtDnCol   = input.color(sty.FIB_EXT_DN_COL, "Fib Extension Down Color", group="Style – Fibonacci")
+fibWidth      = input.int(sty.FIB_WIDTH, "Fib Line Width", minval=1, group="Style – Fibonacci")
+labelSizeOpt  = input.string(sty.LABEL_SIZE, "Fib Label Size", options=[size.tiny, size.small, size.normal, size.large, size.huge], group="Style – Fibonacci")
+labelOffset   = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")

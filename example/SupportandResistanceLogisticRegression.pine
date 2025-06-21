@@ -40,12 +40,12 @@ weightsStr = input.string("", "External Weights w0,w1,w2", group="Support/Resist
 trainRate = input.float(0.05, "Train Learning Rate", minval=0.001, step=0.001, group="Support/Resistance")
 trainEpochs = input.int(50, "Train Epochs", minval=1, group="Support/Resistance")
 
-
-// ⁕ Estilos – S/R (valores padrão via StyleLib)
-srColorRes    = input.color(styles.sr_color_res,    "Resistance (Active Fill)", group="Style – S/R")
-srColorSup    = input.color(styles.sr_color_sup,    "Support (Active Fill)",  group="Style – S/R")
-srColorValid  = input.color(styles.sr_color_valid,  "Validated Zone",       group="Style – S/R")
-srColorBroken = input.color(styles.sr_color_broken, "Broken Zone",          group="Style – S/R")
+// ⁕ Estilos – S/R (valores padrão via StyleLib). Using the exported constants
+// ensures the defaults are of type `const color`, satisfying `input.color`.
+srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
+srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
+srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
+srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")

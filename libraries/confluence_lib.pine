@@ -55,7 +55,7 @@ export method calculateConfluence(ConfluenceInput input) =>
     // Validate weight scheme and warn if unsupported
     bool valid_scheme = scheme == "linear" or scheme == "exponential" or scheme == "logistic"
     if not valid_scheme
-        warning("calculateConfluence: invalid weight_scheme '" + input.weight_scheme + "'. Using linear fallback")
+        runtime.error("calculateConfluence: invalid weight_scheme '" + input.weight_scheme + "'. Using linear fallback")
         scheme := "linear"
 
     // --- Passo 2: Calcular os pesos intermediários ---
