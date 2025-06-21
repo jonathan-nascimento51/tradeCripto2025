@@ -137,7 +137,7 @@ if srEnabled
         if zone.status != "Broken"
             bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
-            
+
             if isRetest
                 bool validated = sru.f_handleRetest(zone, retestCount, retestProbWeight, borderColorValid, srColorValid)
                 if validated
@@ -159,9 +159,9 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na, 
-          title="PH Marker", style=shape.triangledown, location=location.absolute, 
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na,
+          title="PH Marker", style=shape.triangledown, location=location.absolute,
           color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na, 
-          title="PL Marker", style=shape.triangleup, location=location.absolute, 
+plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na,
+          title="PL Marker", style=shape.triangleup, location=location.absolute,
           color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
