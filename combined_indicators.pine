@@ -230,18 +230,21 @@ else if not fibEnabled
     label.delete(fibAnchorHighLabel)
     label.delete(fibAnchorLowLabel)
 
-if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
-    for zone in sr_zones
-        if zone.status != "Broken"
-            for fib in fib_levels
-                if math.abs(zone.level - fib.level) < confThreshPx
-                    conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
-                    conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
-                    float score = result.confluence_weight
-                    if score > 0
-                        color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
-                        string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fib.level) + " (" + str.tostring(fib.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
-                        box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + confluenceBoxWidth, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
-                        cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
+if confEnabled
+    if array.size(sr_zones) > 0 and array.size(fib_levels) > 0
+        for zone in sr_zones
+            if zone.status != "Broken"
+                for fib in fib_levels
+                    if math.abs(zone.level - fib.level) < confThreshPx
+                        conf.ConfluenceInput confluenceInput = conf.ConfluenceInput.new(fib.level, zone.level, zone.probability, atr, fib.bar_index, zone.retests, retestCount, zone.bar_index, 1.0, 50, w1, w2, w3, w4, weightScheme, kDist, kTemp)
+                        conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
+                        float score = result.confluence_weight
+                        if score > 0
+                            color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
+                            string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fib.level) + " (" + str.tostring(fib.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
+                            box confBox = box.new(bar_index, math.max(zone.level, fib.level), bar_index + confluenceBoxWidth, math.min(zone.level, fib.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                            cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
+    else
+        cb.clearBoxes(confBoxes)
 else
     cb.clearBoxes(confBoxes)
