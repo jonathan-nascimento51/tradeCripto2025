@@ -5,6 +5,7 @@
 //  ▸ Implementa as regras de cálculo baseadas na sua especificação JSON.
 // =============================================================================
 library("ConfluenceLib", true)
+import "logistic_model_lib.pine" as lm
 
 // UDT PARA DADOS DE ENTRADA
 // Agrupa todos os valores brutos necessários para o cálculo.
@@ -53,15 +54,17 @@ export method calculateConfluence(ConfluenceInput input) =>
     string scheme = str.lower(input.weight_scheme)
 
     // --- Passo 2: Calcular os pesos intermediários ---
+    float expArgDist = -input.k_dist * n_dist
     float dist_w = switch scheme
-        "exponential" => math.exp(-input.k_dist * n_dist)
-        "logistic"    => 1.0 / (1.0 + math.exp(input.k_dist * (n_dist - 0.5)))
+        "exponential" => math.exp(math.max(math.min(expArgDist, 50), -50))
+        "logistic"    => lm.logistic(n_dist, 0, 0, input.k_dist * 0.5, -input.k_dist, 0, 0)
         => math.max(0, 1 - n_dist)
     float signal_w = na(input.sr_pred_probability) ? 0 : math.min(math.max(input.sr_pred_probability, 0), 1)
     float retests_w = input.sr_target_respects > 0 ? math.min(input.sr_times_respected / float(input.sr_target_respects), 1.0) : 0
+    float expArgTemp = -input.k_temp * n_temp    
     float temporal_w = switch scheme
-        "exponential" => math.exp(-input.k_temp * n_temp)
-        "logistic"    => 1.0 / (1.0 + math.exp(input.k_temp * (n_temp - 0.5)))
+        "exponential" => math.exp(math.max(math.min(expArgTemp, 50), -50))
+        "logistic"    => lm.logistic(n_temp, 0, 0, input.k_temp * 0.5, -input.k_temp, 0, 0)
         => math.max(0, 1 - n_temp)
 
     // --- Passo 3: Calcular a pontuação de confluência final ---

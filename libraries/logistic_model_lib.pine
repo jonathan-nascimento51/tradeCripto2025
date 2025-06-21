@@ -1,5 +1,6 @@
 //@version=6
-library("LogisticModelLib", overlay=false)
+// Library must be declared with overlay=true so it can be imported consistently
+library("LogisticModelLib", true)
 // Unified logistic regression helpers. This library replaces the
 // previous `logistic_regression_utils` and `logistic_training_utils` modules.
 
@@ -36,12 +37,17 @@ export type TrainResult
 // -----------------------------------------------------------------------------
 // Optional initial weights allow continuing training from a previous state.
 export gradientDescent(float[] x1, float[] x2, float[] x3, float[] y, float rate, int epochs, float w0Init = 0.0, float w1Init = 0.0, float w2Init = 0.0, float w3Init = 0.0) =>
+    // Use the smallest array length to avoid out-of-range errors    
     int n = math.min(array.size(x1), math.min(array.size(x2), math.min(array.size(x3), array.size(y))))
+    if array.size(x1) != array.size(x2) or array.size(x2) != array.size(x3) or array.size(x3) != array.size(y)
+        warning("gradientDescent: input array sizes differ; using min length " + str.tostring(n))
+    if n == 0
+        warning("gradientDescent: no training data provided")    
     float w0 = w0Init
     float w1 = w1Init
     float w2 = w2Init
     float w3 = w3Init
-    float loss = na
+    float loss = 0.0
     for ep = 0 to epochs - 1
         float epochLoss = 0.0
         for i = 0 to n - 1
