@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+- Fixed exporting array constant in `fib_extension_lib.pine` and
+  updated scripts to use color constants directly with `input.color`.
 - Added feedback correction circuit with incident reports and regression prompt template.
 
 ## [v2.0.0] - 2025-06-20

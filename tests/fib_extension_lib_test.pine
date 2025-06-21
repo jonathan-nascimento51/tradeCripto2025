@@ -7,4 +7,7 @@ st.Styles styles = st.getStyles()
 
 var fib.FibLevel[] levels = array.new<fib.FibLevel>()
 if barstate.isfirst
+    // Retrieve the predefined ratios just to confirm the getter works
+    float[] ratios = fib.getRatios()
+    label.new(bar_index, high, 'Ratios: ' + str.tostring(array.size(ratios)))
     fib.drawLevels(levels, bar_index, high, low, styles.fib_base_color, styles.fib_ext_up_col, styles.fib_ext_dn_col, styles.fib_width, styles.label_size, styles.label_offset)
