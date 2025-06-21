@@ -2,7 +2,13 @@ import os
 from typing import List
 
 def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -> str:
-    """Return a slice of code around the specified function."""
+    """Return `window` lines after the first match of `function_name`.
+    file_path: path to the source file.
+    function_name: name of the function to locate.
+    window: how many lines to keep after the match.
+    Returns the extracted snippet or an empty string.
+    Example: extract_code_snippet('mod.py', 'main', 10)
+    """
     if not os.path.isfile(file_path):
         return ""
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -13,7 +19,13 @@ def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -
     return ""
 
 def extract_text_section(file_path: str, start_keyword: str, end_keyword: str) -> str:
-    """Extract text between two keywords."""
+    """Return text located between `start_keyword` and `end_keyword`.
+    file_path: file to search.
+    start_keyword: text marking start of the section.
+    end_keyword: text marking its end.
+    Returns the captured text or an empty string.
+    Example: extract_text_section('README.md', '# Start', '# End')
+    """
     if not os.path.isfile(file_path):
         return ""
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -32,7 +44,11 @@ def extract_text_section(file_path: str, start_keyword: str, end_keyword: str) -
     return ""
 
 def get_file_structure(directory: str) -> List[str]:
-    """Return a sorted list of file paths under the directory."""
+    """Return sorted relative file paths found under `directory`.
+    directory: root folder to scan.
+    Returns a list of paths sorted alphabetically.
+    Example: get_file_structure('tests')[:2]
+    """
     paths: List[str] = []
     for root_dir, _, files in os.walk(directory):
         for fname in files:
