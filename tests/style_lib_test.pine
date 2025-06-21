@@ -4,3 +4,5 @@ import "../libraries/style_lib.pine" as st
 
 st.Styles styles = st.getStyles()
 plot(close, color=styles.sr_color_res)
+
+// Expected output: the close series plots using the resistance color from the style library.

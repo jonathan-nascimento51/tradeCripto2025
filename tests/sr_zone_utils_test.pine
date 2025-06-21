@@ -18,3 +18,5 @@ for z in zones
     bool broken = close < z.level - 1
     if broken
         sru.f_markBroken(z, 1, color.red, color.red)
+
+// Expected output: the zone fills blue on retests and turns red when broken.
