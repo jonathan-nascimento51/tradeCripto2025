@@ -5,8 +5,8 @@ set -x
 export GIT_TERMINAL_PROMPT=0
 
 # Autentica o GH CLI sem prompt
-if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-  echo "$GITHUB_TOKEN" | gh auth login --with-token --hostname github.com --git-protocol https
+if [[ -n "${GIT_TOKEN:-}" ]]; then
+  echo "$GIT_TOKEN" | gh auth login --with-token --hostname github.com --git-protocol https
   git config --global credential.helper "!gh auth git-credential"
 fi
 
