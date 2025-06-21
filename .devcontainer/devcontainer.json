@@ -3,7 +3,7 @@
   "dockerFile": "Dockerfile",
   "build": {
     "args": {
-      "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}",
+      "GITHUB_TOKEN": "${localEnv:GIT_TOKEN}",
       "REMOTE_URL":   "${localEnv:REMOTE_URL}"
     }
   },
