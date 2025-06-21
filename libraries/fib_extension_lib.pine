@@ -12,17 +12,16 @@ export type FibLevel
     int   bar_index   // Bar index where the line/label were created
 
 // ───────── Utilidades internas (não-exportadas) ─────────
-_ratios() =>          // ← local helper, NÃO exportado
-    // A cada chamada cria (ou, se quiser, use `var` local para criar 1× só)
+_ratios() =>
+    // Creates a fresh array with all standard Fibonacci ratios.
+    // Keeping it as a function avoids persistent state.
     array.from(0.236, 0.382, 0.5, 0.618, 0.786,
                1.0, 1.272, 1.414, 1.618, 2.0)
 
 // ───────── API pública ─────────
 
 // ① Getter seguro: sempre devolve um novo array, sem capturar global
-export getRatios() =>
-    array.from(0.236, 0.382, 0.5, 0.618, 0.786,
-               1.0, 1.272, 1.414, 1.618, 2.0)
+export getRatios() => _ratios()
 
 // -----------------------------------------------------------------------------
 // calcLevel
@@ -74,9 +73,10 @@ export clearLevels(FibLevel[] levels) =>
 export drawLevels(FibLevel[] levels, int barIndex, float lastHigh, float lastLow, color baseColor, color extUpColor, color extDnColor, int width, string lblSize, int lblOffset) =>
     clearLevels(levels)
     float diff = math.abs(lastHigh - lastLow)
-    bool isUp = lastHigh > lastLow
-    for idx = 0 to array.size(_ratios()) - 1
-        float r = array.get(_ratios(), idx)
+    bool isUp  = lastHigh > lastLow
+    float[] ratios = _ratios()           // call once to reuse inside the loop
+    for idx = 0 to array.size(ratios) - 1
+        float r = array.get(ratios, idx)
         float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
         bool isExt = r > 1.0
         color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
