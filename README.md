@@ -66,7 +66,6 @@ Located in the `example/` folder, this minimal example shows how to detect suppo
 ### `libraries/pivot_utils.pine`
 Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing highs and lows.
 
-
 ### `libraries/sr_zone_utils.pine`
 Common utilities for managing support/resistance zones (adding, clearing, retest and break logic).
 
@@ -76,6 +75,13 @@ This library replaces the older `logistic_regression_utils.pine` and `logistic_t
 
 ### `libraries/StyleLib`
 Centralizes all default colors and chart styling options so indicators share the same visual theme. The library exposes `getStyles()` which returns an object with predefined color settings.
+
+### `libraries/fib_confluence_engine.pine`
+Provides an engine for detecting pivot swings and deriving Fibonacci levels from
+them. Levels that fall within a chosen distance are grouped into clusters so
+zones of confluence can be highlighted on the chart. The library exports the
+`Swing` and `Cluster` types along with `detectSwings()`, `getFibLevels()`,
+`clusterLevels()` and `drawClusters()` helper functions.
 
 ## Using the Libraries
 

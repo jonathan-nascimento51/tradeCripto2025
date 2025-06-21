@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 - Fixed exporting array constant in `fib_extension_lib.pine` and
   updated scripts to use color constants directly with `input.color`.
 - Added feedback correction circuit with incident reports and regression prompt template.
+- Added **FibConfluenceEngine** library for clustering Fibonacci levels and highlighting confluence zones.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

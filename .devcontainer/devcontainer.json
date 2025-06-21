@@ -4,7 +4,8 @@
   "build": {
     "args": {
       "GITHUB_TOKEN": "${localEnv:GIT_TOKEN}",
-      "REMOTE_URL":   "${localEnv:REMOTE_URL}"
+      "REMOTE_URL":   "${localEnv:REMOTE_URL}",
+      "CURRENT_BRANCH": "${localEnv:CURRENT_BRANCH}"
     }
   },
   "postCreateCommand": "bash ./.devcontainer/setup_git.sh"
