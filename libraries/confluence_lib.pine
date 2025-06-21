@@ -52,6 +52,11 @@ export method calculateConfluence(ConfluenceInput input) =>
     float n_dist = input.distance_threshold > 0 ? dist_pct / input.distance_threshold : dist_pct
     float n_temp = input.max_temporal_diff > 0 ? temp_diff / float(input.max_temporal_diff) : temp_diff
     string scheme = str.lower(input.weight_scheme)
+    // Validate weight scheme and warn if unsupported
+    bool valid_scheme = scheme == "linear" or scheme == "exponential" or scheme == "logistic"
+    if not valid_scheme
+        warning("calculateConfluence: invalid weight_scheme '" + input.weight_scheme + "'. Using linear fallback")
+        scheme := "linear"
 
     // --- Passo 2: Calcular os pesos intermediários ---
     float expArgDist = -input.k_dist * n_dist
