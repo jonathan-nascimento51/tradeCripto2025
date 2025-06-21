@@ -150,3 +150,10 @@ python tools/auto_commit_push.py "Fix typo" --agent impl_codex
 This command stages all modifications, creates the commit `Fix typo – agent::impl_codex`
 and pushes it to the current branch on the `origin` remote. Use `--files`, `--branch`
 or `--remote` for finer control.
+### Manual Commit Example
+```bash
+git add AGENTS.md
+git commit -m "Atualiza convencoes de commit – agent::doc_writer"
+git push
+```
+Every commit should include the prefix `agent::<nome>` in the message and should not be amended to keep history intact.
