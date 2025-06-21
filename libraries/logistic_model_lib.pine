@@ -34,12 +34,13 @@ export type TrainResult
 // gradientDescent
 // Executes simple gradient descent on the logistic regression model.
 // -----------------------------------------------------------------------------
-export gradientDescent(float[] x1, float[] x2, float[] x3, float[] y, float rate, int epochs) =>
+// Optional initial weights allow continuing training from a previous state.
+export gradientDescent(float[] x1, float[] x2, float[] x3, float[] y, float rate, int epochs, float w0Init = 0.0, float w1Init = 0.0, float w2Init = 0.0, float w3Init = 0.0) =>
     int n = math.min(array.size(x1), math.min(array.size(x2), math.min(array.size(x3), array.size(y))))
-    float w0 = 0.0
-    float w1 = 0.0
-    float w2 = 0.0
-    float w3 = 0.0
+    float w0 = w0Init
+    float w1 = w1Init
+    float w2 = w2Init
+    float w3 = w3Init
     float loss = na
     for ep = 0 to epochs - 1
         float epochLoss = 0.0

@@ -72,6 +72,7 @@ Common utilities for managing support/resistance zones (adding, clearing, retest
 
 ### `libraries/logistic_model_lib.pine`
 This library replaces the older `logistic_regression_utils.pine` and `logistic_training_utils.pine` files.
+`gradientDescent()` now accepts optional initial weights so training can resume from a previous state.
 
 ### `libraries/StyleLib`
 Centralizes all default colors and chart styling options so indicators share the same visual theme. The library exposes `getStyles()` which returns an object with predefined color settings.

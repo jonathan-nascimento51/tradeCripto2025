@@ -8,7 +8,8 @@ float[] x2 = array.from(1.0, 1.0, -1.0, -1.0)
 float[] x3 = array.from(1.0, 1.0, 1.0, -1.0)
 float[] y  = array.from(1.0, 0.0, 1.0, 0.0)
 
-lm.TrainResult res = lm.gradientDescent(x1, x2, x3, y, 0.1, 20)
+// Start training from small non-zero weights to demonstrate the optional parameters.
+lm.TrainResult res = lm.gradientDescent(x1, x2, x3, y, 0.1, 20, 0.2, -0.1, 0.05, 0.0)
 plot(res.loss, title='Training Loss')
 
 float prob = lm.logistic(array.get(x1, 0), array.get(x2, 0), array.get(x3, 0), res.w0, res.w1, res.w2, res.w3)
