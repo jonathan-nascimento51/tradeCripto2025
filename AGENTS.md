@@ -339,7 +339,8 @@ Traceability: cada agente adiciona trace_id (UUID‑4) em sua saída.
 
 Token Budget: prompts ≤ 550 tokens; respostas ≤ 1300 tokens.
 
-Commits: PRs devem incluir label agent::<name>.
+Commits: Para cada tarefa, crie um novo commit com o rótulo `agent::<nome>` 
+(não use `--amend` para não reescrever histórico).
 
 5. Fluxos de Uso Comuns
 
