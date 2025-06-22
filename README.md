@@ -212,3 +212,7 @@ git commit -m "Atualiza convencoes de commit – agent::doc_writer"
 git push
 ```
 Every commit should include the prefix `agent::<nome>` in the message and should not be amended to keep history intact.
+## Contribution Guidelines
+
+- Every commit message must begin with `agent::<nome>` as described in `AGENTS.md`.
+- Avoid rewriting history with `git commit --amend`; create a new commit for each change.
