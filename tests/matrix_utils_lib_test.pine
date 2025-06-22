@@ -1,0 +1,17 @@
+//@version=6
+indicator('Matrix Utils Lib Test', overlay=true)
+import "../libraries/matrix_utils_lib.pine" as mu
+
+var matrix<float> m = matrix.new<float>(2, 2, 0)
+if barstate.isfirst
+    matrix.set(m, 0, 0, 1)
+    matrix.set(m, 1, 1, 2)
+    float v1 = mu.getOrDefault(m, 1, 1, -1)
+    float v2 = mu.getOrDefault(m, 2, 0, -1)
+    label.new(bar_index, high, str.tostring(v1))
+    label.new(bar_index, high - syminfo.mintick * 10, str.tostring(v2))
+
+if barstate.islast
+    label.new(bar_index, low, 'done')
+
+// Expected output: labels show "2" and "-1" on the first bar and "done" on the last bar.
