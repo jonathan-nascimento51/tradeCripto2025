@@ -378,4 +378,4 @@ Profit Factor
 
 Σ trades vencedores ÷ Σ trades perdedores
 
-Mantra: “Cada agente faz uma coisa, mas faz bem.”Mantenha o AGENTS.md como a fonte única de verdade.
+Mantra: “Cada agente faz uma coisa, mas faz bem.” Mantenha o AGENTS.md como a fonte única de verdade.
