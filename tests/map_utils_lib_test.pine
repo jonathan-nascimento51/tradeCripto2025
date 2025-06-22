@@ -1,5 +1,5 @@
 //@version=6
-indicator('Map Utils Lib Test', overlay=false)
+indicator('Map Utils Lib Test', overlay=true)
 import "../libraries/map_utils_lib.pine" as mu
 
 var map<float,int> demo = map.new<float,int>()
@@ -11,4 +11,4 @@ if barstate.islast
     int val = mu.getOrDefault(demo, 3.0, -1)
     label.new(bar_index, close, str.tostring(val))
 
-// Expected output: a label on the last bar showing "-1".
+// Expected output: label texto "-1" no último candle.
