@@ -1,4 +1,6 @@
 //@version=6
+// (library("PivotUtils", true))
+
 indicator('Pivot Utils Test', overlay=true)
 import "../libraries/pivot_utils.pine" as pv
 
