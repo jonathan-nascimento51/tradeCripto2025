@@ -83,6 +83,24 @@ zones of confluence can be highlighted on the chart. The library exports the
 `Swing` and `Cluster` types along with `detectSwings()`, `getFibLevels()`,
 `clusterLevels()` and `drawClusters()` helper functions.
 
+Here is a short example that wires these helpers together:
+
+```pinescript
+import "./libraries/fib_confluence_engine.pine" as fce
+import "./libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+var fce.Swing[] swings = array.new<fce.Swing>()
+var box[] boxes = array.new<box>()
+
+fce.detectSwings(swings, high, low, 5, 5)
+[float[] levels, float[] weights] = fce.getFibLevels(swings)
+fce.Cluster[] clusters = fce.clusterLevels(levels, weights, atr(14) * 0.25)
+fce.drawClusters(clusters, boxes, bar_index - 30, bar_index, styles.fib_base_color)
+```
+
+See `tests/fib_confluence_engine_test.pine` for a minimal runnable script with the same logic.
+
 ## Using the Libraries
 
 1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/2`).
