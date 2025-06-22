@@ -1,4 +1,4 @@
- Test Script Guidelines
+# Test Script Guidelines
 
 Each helper library inside `../libraries/` must have a corresponding `*_test.pine` file here under `tests/`.
 These test scripts demonstrate the basic usage of the library and help confirm that exported functions work as expected.
