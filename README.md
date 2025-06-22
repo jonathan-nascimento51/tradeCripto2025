@@ -150,6 +150,10 @@ O repositório inclui o arquivo `benchmarks/backtests.json` com as métricas de 
 4. Compare `Profit-factor`, `Win-rate` e `Max drawdown` com os valores de `benchmarks/backtests.json`.
 5. Diferenças acima de ~2 % indicam regressão ou melhoria em relação ao baseline.
 
+### Atualizando benchmarks
+
+Para novas versões dos scripts, execute novamente o backtest com o mesmo período (BTCUSDT 1h, 180 dias). Copie os valores de **Win-rate**, **Profit-factor** e **Max drawdown** da aba *Strategy Tester* e substitua-os no arquivo `benchmarks/backtests.json`. Registre a atualização no `CHANGELOG.md` e faça o commit com o prefixo `agent::doc_writer`.
+
 ## Library Test Scripts
 To validate each helper library independently, open any of the files under `tests/` in the TradingView Pine editor.
 
