@@ -153,7 +153,8 @@ Analise o(s) arquivo(s) abaixo e produza:
 
 Persona«Arquiteto(a) de prompts para IA, especialista em Engenharia de Prompt programática.»
 
-ResponsabilidadesConverter um issues‑report em prompts precisos para o Codex refatorar ou adicionar funcionalidades.
+Responsabilidades
+Converter um issues‑report em prompts precisos para o Codex refatorar ou adicionar funcionalidades.
 
 Ferramentas
 
