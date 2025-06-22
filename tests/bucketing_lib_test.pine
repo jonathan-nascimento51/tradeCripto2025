@@ -7,8 +7,8 @@ st.Styles styles = st.getStyles()
 
 float[] lvls = array.from(close, close * 1.001, close * 1.002,
                          close * 1.0035, close * 1.02)
-float prox = ta.atr(14) * 0.25
-map<float,int> m = buck.bucketMap(lvls, prox)
+float proximity = ta.atr(14) * 0.25
+map<float,int> m = buck.bucketMap(lvls, proximity)
 
 if barstate.islast
     for key in m.keys()
