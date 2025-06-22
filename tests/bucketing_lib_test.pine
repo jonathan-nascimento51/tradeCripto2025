@@ -1,0 +1,25 @@
+//@version=6
+indicator('BucketingLib Test', overlay=true)
+import "../libraries/bucketing_lib.pine" as buck
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+
+float[] lvls = array.from(close, close * 1.001, close * 1.002,
+                         close * 1.0035, close * 1.02)
+float prox = ta.atr(14) * 0.25
+map<float,int> m = buck.bucketMap(lvls, prox)
+
+if barstate.islast
+    for key in m.keys()
+        int count = m.get(key)
+        if count >= 2
+            label.new(bar_index + 5, key,
+                      str.tostring(key) + ': ' + str.tostring(count),
+                      color=color.orange,
+                      textcolor=styles.label_text_color,
+                      style=label.style_label_left,
+                      xloc=xloc.bar_index)
+
+// Expected output: orange labels to the right of the last bar showing bucket counts 
+// for each price bucket with at least two levels.
