@@ -19,8 +19,8 @@ export f_bucketMap(float[] levels, float proximity) =>
             float bucketPrice = bucketID * proximity
             // Align bucket price to the symbol's minimum tick
             bucketPrice := math.round(bucketPrice / syminfo.mintick) * syminfo.mintick
-            int count = result.contains(bucketPrice) ? result.get(bucketPrice) + 1 : 1
-            result.put(bucketPrice, count)
+            int count = map.contains(result, bucketPrice) ? map.get(result, bucketPrice) + 1 : 1
+            map.put(result, bucketPrice, count)
         result
 
 // -----------------------------------------------------------------------------
@@ -34,9 +34,9 @@ if barstate.islast
     map<float,int> buckets = f_bucketMap(fiboLevels, proximity)
 
     // Plot labels for buckets with force >= 2
-    for idx = 0 to buckets.size() - 1
-        float price = buckets.key(idx)
-        int strength = buckets.get(price)
+    for idx = 0 to map.size(buckets) - 1
+        float price = map.key(buckets, idx)
+        int strength = map.get(buckets, price)
         if strength >= 2
             label.new(bar_index, price, str.tostring(strength),
                       style = label.style_label_up,
