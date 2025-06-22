@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
   updated scripts to use color constants directly with `input.color`.
 - Added feedback correction circuit with incident reports and regression prompt template.
 - Added **FibConfluenceEngine** library for clustering Fibonacci levels and highlighting confluence zones.
+- Fixed sorting logic in `clusterLevels()` to ensure compatibility with Pine Script's
+  supported `array.sort` signature.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

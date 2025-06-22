@@ -98,10 +98,10 @@ export clusterLevels(float[] levels, float[] weights, float threshold) =>
         int[] idxs = array.new<int>()
         for i = 0 to n - 1
             array.push(idxs, i)
-        array.sort(idxs, (a, b) =>
-            float pa = array.get(levels, a)
-            float pb = array.get(levels, b)
-            pa < pb ? -1 : pa > pb ? 1 : 0)
+        // Sort indexes based on their corresponding level values.
+        // Using `array.sort` with a mapping function is supported in
+        // Pine Script v6, while custom comparator functions are not.
+        array.sort(idxs, order.ascending, (i) => array.get(levels, i))
         float curLow  = array.get(levels, array.get(idxs, 0))
         float curHigh = curLow
         float curScore = array.get(weights, array.get(idxs, 0))
