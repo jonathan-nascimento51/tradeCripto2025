@@ -1,0 +1,44 @@
+//@version=6
+indicator("Engine Core – C-02 Confluence Bucketing", overlay = true)
+
+// -----------------------------------------------------------------------------
+// f_bucketMap
+// Groups Fibonacci levels into price buckets and counts how many levels fall in
+// each bucket. Complexity: O(n).
+// -----------------------------------------------------------------------------
+export f_bucketMap(float[] levels, float proximity) =>
+    map<float,int> result = map.new<float,int>()
+    if array.size(levels) == 0 or proximity <= 0
+        result
+    else
+        for i = 0 to array.size(levels) - 1
+            float level = array.get(levels, i)
+            if na(level)
+                continue
+            float bucketID = math.floor(level / proximity)
+            float bucketPrice = bucketID * proximity
+            // Align bucket price to the symbol's minimum tick
+            bucketPrice := math.round(bucketPrice / syminfo.mintick) * syminfo.mintick
+            int count = result.contains(bucketPrice) ? result.get(bucketPrice) + 1 : 1
+            result.put(bucketPrice, count)
+        result
+
+// -----------------------------------------------------------------------------
+// Test / Validation (only runs on the last bar)
+// -----------------------------------------------------------------------------
+if barstate.islast
+    // Example Fibonacci levels (simulated for validation)
+    float[] fiboLevels = array.from(close + 10.0, close + 10.5, close + 10.7,
+                                    close - 5.3, close - 5.1, close - 4.9)
+    float proximity = ta.atr(14) * 0.25
+    map<float,int> buckets = f_bucketMap(fiboLevels, proximity)
+
+    // Plot labels for buckets with force >= 2
+    for idx = 0 to buckets.size() - 1
+        float price = buckets.key(idx)
+        int strength = buckets.get(price)
+        if strength >= 2
+            label.new(bar_index, price, str.tostring(strength),
+                      style = label.style_label_up,
+                      color = color.yellow,
+                      textcolor = color.black)
