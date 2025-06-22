@@ -7,6 +7,7 @@ import "../libraries/price_precision_lib.pine" as pp
 //@param proximity  simple float (bucket width)
 //@returns          map<float,int>
 export bucketMap(array<float> levels, simple float proximity) =>
+    // Create a fresh map on every call so results do not persist
     var map<float,int> buckets = map.new<float,int>()
     if proximity > 0
         for lvl in levels

@@ -8,18 +8,31 @@ st.Styles styles = st.getStyles()
 float[] lvls = array.from(close, close * 1.001, close * 1.002,
                          close * 1.0035, close * 1.02)
 float proximity = ta.atr(14) * 0.25
-map<float,int> m = buck.bucketMap(lvls, proximity)
+map<float,int> m1 = buck.bucketMap(lvls, proximity)
+map<float,int> m2 = buck.bucketMap(lvls, proximity)
 
 if barstate.islast
-    for key in m.keys()
-        int count = m.get(key)
-        if count >= 2
+    // Results from the first call
+    for key in m1.keys()
+        int count1 = m1.get(key)
+        if count1 >= 2
             label.new(bar_index + 5, key,
-                      str.tostring(key) + ': ' + str.tostring(count),
+                      str.tostring(key) + ': ' + str.tostring(count1),
                       color=color.orange,
                       textcolor=styles.label_text_color,
                       style=label.style_label_left,
                       xloc=xloc.bar_index)
+    // Results from the second call placed further to the right
+    for key in m2.keys()
+        int count2 = m2.get(key)
+        if count2 >= 2
+            label.new(bar_index + 15, key,
+                      '2nd ' + str.tostring(key) + ': ' + str.tostring(count2),
+                      color=color.yellow,
+                      textcolor=styles.label_text_color,
+                      style=label.style_label_left,
+                      xloc=xloc.bar_index)
 
-// Expected output: orange labels to the right of the last bar showing bucket counts 
-// for each price bucket with at least two levels.
+// Expected output: two sets of labels to the right of the last bar. The
+// second set should display the same counts, confirming the map resets
+// between calls.
