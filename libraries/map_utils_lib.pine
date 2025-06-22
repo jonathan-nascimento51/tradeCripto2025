@@ -1,0 +1,10 @@
+//@version=6
+library("MapUtilsLib", true)
+
+//@description Safe getter that returns default when key absent
+//@param m   map<Tkey,Tval>
+//@param k   Tkey
+//@param def Tval
+//@returns   Tval
+export getOrDefault<type Tkey, type Tval>(map<Tkey,Tval> m, Tkey k, Tval def) =>
+    m.contains(k) ? m.get(k) : def

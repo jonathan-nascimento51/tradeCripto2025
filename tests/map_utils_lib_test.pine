@@ -1,0 +1,14 @@
+//@version=6
+indicator('Map Utils Lib Test', overlay=false)
+import "../libraries/map_utils_lib.pine" as mu
+
+var map<float,int> demo = map.new<float,int>()
+if barstate.isfirst
+    demo.put(1.0, 1)
+    demo.put(2.0, 2)
+
+if barstate.islast
+    int val = mu.getOrDefault(demo, 3.0, -1)
+    label.new(bar_index, close, str.tostring(val))
+
+// Expected output: a label on the last bar showing "-1".
