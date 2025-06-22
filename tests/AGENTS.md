@@ -32,6 +32,7 @@ Load any `tests/*.pine` file using the steps above. Each one demonstrates a sing
 - `style_lib_test.pine` – close series uses the resistance color from `style_lib`.
 - `fib_confluence_engine_test.pine` – gradient boxes highlight clustered Fibonacci levels.
 - `combined_indicators_test.pine` – Fibonacci levels and SR zones draw from pivots; a logistic probability line oscillates between 0 and 1.
+- `array_utils_lib_test.pine` – label shows the last value before clearing and `-1` on the final bar.
 
 ### Prerequisites
 

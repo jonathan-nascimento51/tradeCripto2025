@@ -1,0 +1,17 @@
+//@version=6
+indicator('Array Utils Lib Test', overlay=true)
+import "../libraries/array_utils_lib.pine" as au
+
+var float[] arr = array.from(1.0, 2.0, 3.0)
+
+if barstate.isfirst
+    // Demonstrate negative indexing before clearing the array
+    float lastVal = arr.get(-1)
+    label.new(bar_index, high, str.tostring(lastVal))
+    array.clear(arr)
+
+if barstate.islast
+    float result = au.lastOrDefault(arr, -1.0)
+    label.new(bar_index, low, str.tostring(result))
+
+// Expected output: label text "3" on the first bar and "-1" on the last bar.

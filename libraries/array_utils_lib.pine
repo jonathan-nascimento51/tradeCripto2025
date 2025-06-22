@@ -1,0 +1,9 @@
+//@version=6
+library("ArrayUtilsLib", true)
+
+//@description Returns last element or default when array empty
+//@param a   array<float>
+//@param def float
+//@returns   float
+export lastOrDefault(array<float> a, float def) =>
+    array.size(a) > 0 ? a.get(-1) : def
