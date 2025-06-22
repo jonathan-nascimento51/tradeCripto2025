@@ -1,0 +1,9 @@
+//@version=6
+library("PricePrecisionLib", true)
+
+//@description Provides a centralized function to round price values to the nearest valid tick, according to syminfo.mintick. This ensures consistency across all indicators and strategies, preventing backtesting and plotting errors.
+
+//@param price [float] The price value to be rounded.
+//@returns [float] The price value rounded to the symbol's minimum tick.
+export roundToTick(float price) =>
+    math.round_to_mintick(price)

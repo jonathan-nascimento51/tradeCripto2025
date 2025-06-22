@@ -1,0 +1,37 @@
+//@version=6
+indicator("PricePrecisionLib Test", overlay=true)
+
+import "../libraries/price_precision_lib.pine" as PPLib
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+
+if barstate.isfirst
+    float raw_price = close + (syminfo.mintick * 0.37)
+    float rounded_price = PPLib.roundToTick(raw_price)
+    string label_text = "Price Precision Test\n" +
+                        "Mintick: " + str.tostring(syminfo.mintick) + "\n" +
+                        "Raw Price: " + str.tostring(raw_price) + "\n" +
+                        "Rounded Price: " + str.tostring(rounded_price)
+    label.new(
+         x=bar_index,
+         y=high,
+         text=label_text,
+         color=styles.label_bg,
+         textcolor=styles.label_text_color,
+         style=label.style_label_left,
+         xloc=xloc.bar_index
+         )
+
+if barstate.islast
+    label.new(
+         x=bar_index,
+         y=low,
+         text="Done",
+         color=styles.label_bg,
+         textcolor=styles.label_text_color,
+         style=label.style_label_right,
+         xloc=xloc.bar_index
+         )
+
+// Expected output: first bar shows a label with mintick, raw and rounded prices. A final label "Done" appears on the last bar.
