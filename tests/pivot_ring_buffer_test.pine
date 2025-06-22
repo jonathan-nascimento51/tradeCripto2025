@@ -1,0 +1,13 @@
+//@version=6
+indicator('Pivot Ring Buffer Lib Test', overlay=true)
+import "../libraries/pivot_ring_buffer_lib.pine" as prb
+
+leftBars  = input.int(3, 'Left Bars')
+rightBars = input.int(3, 'Right Bars')
+capacity  = input.int(20, 'Buffer Capacity')
+
+prb.setCapacity(capacity)
+[float ph, float pl] = prb.processCandidate(high, low, leftBars, rightBars)
+
+plot(close)
+// Expected output: green and red triangles appear when pivots confirm.
