@@ -66,6 +66,17 @@ Located in the `example/` folder, this minimal example shows how to detect suppo
 ### `libraries/pivot_utils.pine`
 Small wrappers around `ta.pivothigh` and `ta.pivotlow` used to detect swing highs and lows.
 
+### `libraries/pivot_ring_buffer_lib.pine`
+Stores potential pivot points in a ring buffer until enough bars have passed to confirm them. Useful when you want to defer validation and avoid premature repainting.
+
+```pinescript
+import "./libraries/pivot_ring_buffer_lib.pine" as prb
+
+prb.setCapacity(20)
+[float ph, float pl] = prb.processCandidate(high, low, 3, 3)
+// ph and pl hold a value only after `rightBars` bars have elapsed
+```
+
 ### `libraries/sr_zone_utils.pine`
 Common utilities for managing support/resistance zones (adding, clearing, retest and break logic).
 
