@@ -249,7 +249,7 @@ Refatorar ou criar código Pine conforme especificação vinda do Prompt‑Build
 
 Manter compatibilidade com TradingView (máx. 500 linhas por script).
 
-Atualizar ou criar testes de exemplo (examples/*.pinetest).
+Atualizar ou criar testes de exemplo (example/*.pine).
 • Solicitar esclarecimentos sempre que a requisição do usuário for ambígua.
 • Orientar o usuário sobre cenários de borda (gaps, consolidações etc.).
 • Explicitar limitações do Pine Script e do TradingView.
@@ -259,7 +259,7 @@ Ferramentas
 
 Acesso de escrita ao repo.
 
-Snippets de boas práticas (/templates/pine).
+Snippets de boas práticas (prompt_templates/).
 
 Prompt‑template
 
