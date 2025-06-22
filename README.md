@@ -162,7 +162,7 @@ To validate each helper library independently, open any of the files under `test
    - Copy the contents of one of the `tests/*.pine` files into the editor.
    - Save and add the indicator to the chart.
 2. **Expected output**
-   - `logistic_model_test.pine` plots the training loss of a toy dataset and shows a label with the probability for the first sample.
+   - `logistic_model_lib_test.pine` plots the training loss of a toy dataset and shows a label with the probability for the first sample.
    - `pivot_utils_test.pine` draws triangle markers at detected pivot highs and lows.
    - `sr_zone_utils_test.pine` creates a demo zone on the first bar and updates its state when price retests or breaks it.
    - `sr_manager_lib_test.pine` adds a zone whenever a pivot high forms using the manager helper.

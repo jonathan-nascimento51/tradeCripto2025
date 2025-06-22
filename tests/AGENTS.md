@@ -21,7 +21,7 @@ Following these steps keeps validation simple and ensures every library remains 
 
 Load any `tests/*.pine` file using the steps above. Each one demonstrates a single library in isolation. After adding the script to your chart, confirm the library works by checking the visual cues below:
 
-- `logistic_model_test.pine` – training loss plotted and a green **PASS** label when weights remain unchanged.
+- `logistic_model_lib_test.pine` – training loss plotted and a green **PASS** label when weights remain unchanged.
 - `pivot_utils_test.pine` – triangle markers appear on pivot highs and lows.
 - `sr_zone_utils_test.pine` – zone fills blue on retests and turns red when broken.
 - `sr_manager_lib_test.pine` – a red zone appears at every new pivot high.
