@@ -1,0 +1,100 @@
+//@version=6
+library("FiboProjector", true)
+
+import "./style_lib.pine" as st
+
+// -----------------------------------------------------------------------------
+// Internal helper returning the standard Fibonacci projection ratios.
+// The array is created on demand so no persistent global state is stored.
+// -----------------------------------------------------------------------------
+_ratios() =>
+    array.from(0.382, 0.618, 1.0, 1.272, 1.618, 2.0, 2.618)
+
+// -----------------------------------------------------------------------------
+// User defined type holding all data required to manage projection drawings.
+// - `ratios`  : array of Fibonacci ratios used to compute levels
+// - `levels`  : computed price levels for the current swing
+// - `lines`   : line objects for each level
+// - `labels`  : label objects placed at the start of the lines
+// - `goldBox` : box representing the adaptive golden zone
+// - `lower`   : lower bound of the golden zone
+// - `upper`   : upper bound of the golden zone
+// - `isUp`    : orientation of the current swing
+// -----------------------------------------------------------------------------
+export type Projector
+    float[] ratios
+    float[] levels
+    line[]  lines
+    label[] labels
+    box     goldBox
+    float   lower
+    float   upper
+    bool    isUp
+
+// -----------------------------------------------------------------------------
+// newProjector
+// Creates a new Projector instance with default ratios and empty arrays.
+// -----------------------------------------------------------------------------
+export newProjector() =>
+    Projector.new(_ratios(), array.new<float>(), array.new<line>(), array.new<label>(), na, na, na, true)
+
+// -----------------------------------------------------------------------------
+// computeLevels
+// Calculates projection levels from a pivot pair and stores them in the object.
+// `p1` is the first pivot, `p2` is the second (most recent) pivot.
+// `atrVal` is the current ATR value used to size the golden zone.
+// `atrMult` controls how wide the golden zone is (in ATR multiples).
+// -----------------------------------------------------------------------------
+export method computeLevels(Projector self, float p1, float p2, float atrVal, float atrMult) =>
+    self.isUp := p2 > p1
+    float diff = math.abs(p2 - p1)
+    array.clear(self.levels)
+    for i = 0 to array.size(self.ratios) - 1
+        float r = array.get(self.ratios, i)
+        float lvl = self.isUp ? p2 + diff * r : p2 - diff * r
+        array.push(self.levels, lvl)
+    float gLevel = self.isUp ? p2 + diff * 1.618 : p2 - diff * 1.618
+    float offset = atrVal * atrMult
+    self.lower := gLevel - offset
+    self.upper := gLevel + offset
+
+// -----------------------------------------------------------------------------
+// clearDrawings
+// Deletes all drawing objects associated with the projector.
+// -----------------------------------------------------------------------------
+export method clearDrawings(Projector self) =>
+    for ln in self.lines
+        line.delete(ln)
+    for lb in self.labels
+        label.delete(lb)
+    if not na(self.goldBox)
+        box.delete(self.goldBox)
+    array.clear(self.lines)
+    array.clear(self.labels)
+    self.goldBox := na
+
+// -----------------------------------------------------------------------------
+// draw
+// Creates lines and labels for the stored levels and optionally draws the golden
+// zone box. Drawings extend to `right` (bar index).
+// -----------------------------------------------------------------------------
+export method draw(Projector self, int left, int right, color baseColor, color extColor, color goldColor, int width, string lblSize, int lblOff) =>
+    self.clearDrawings()
+    for i = 0 to array.size(self.levels) - 1
+        float lvl = array.get(self.levels, i)
+        float r = array.get(self.ratios, i)
+        color lnCol = r > 1.0 ? extColor : baseColor
+        line ln = line.new(left, lvl, right, lvl, color=lnCol, width=width, extend=extend.right)
+        string txt = str.tostring(r * 100, "#.##") + "%"
+        label lb = label.new(left, lvl,
+                             text=txt,
+                             xloc=xloc.bar_index,
+                             style=lblOff > 0 ? label.style_label_left : label.style_label_right,
+                             color=color.new(lnCol, 80),
+                             textcolor=lnCol,
+                             size=lblSize)
+        lb.set_x(left + lblOff)
+        array.push(self.lines, ln)
+        array.push(self.labels, lb)
+    if not na(self.lower) and not na(self.upper)
+        self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor,80), border_color=goldColor

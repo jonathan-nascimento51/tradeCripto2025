@@ -1,0 +1,22 @@
+//@version=6
+indicator('Fibo Projector Test', overlay=true)
+import "../libraries/fibo_projector.pine" as fp
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+fp.Projector proj = fp.newProjector()
+
+float atr = ta.atr(14)
+
+if barstate.islast
+    // Simple demo using the highest/lowest values of the window
+    float hi = ta.highest(high, 20)
+    float lo = ta.lowest(low, 20)
+    fp.computeLevels(proj, lo, hi, atr, 1.0)
+    fp.draw(proj, bar_index, bar_index + 20,
+            styles.fib_base_color,
+            styles.fib_ext_up_col,
+            color.new(color.yellow, 70),
+            styles.fib_width,
+            styles.label_size,
+            styles.label_offset)

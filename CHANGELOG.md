@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Added **FibConfluenceEngine** library for clustering Fibonacci levels and highlighting confluence zones.
 - Fixed sorting logic in `clusterLevels()` to ensure compatibility with Pine Script's
   supported `array.sort` signature.
+- Added **FiboProjector** library with ATR-based Golden Zone and a new test script.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

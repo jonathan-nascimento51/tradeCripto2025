@@ -112,6 +112,11 @@ fce.drawClusters(clusters, boxes, bar_index - 30, bar_index, styles.fib_base_col
 
 See `tests/fib_confluence_engine_test.pine` for a minimal runnable script with the same logic.
 
+### `libraries/fibo_projector.pine`
+Computes Fibonacci projection levels from a pivot pair and highlights an adaptive
+*Golden Zone* sized using ATR. The `Projector` type stores levels and offers
+`computeLevels()` and `draw()` helpers.
+
 ## Using the Libraries
 
 1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/2`).
@@ -159,6 +164,7 @@ To validate each helper library independently, open any of the files under `test
    - `sr_manager_lib_test.pine` adds a zone whenever a pivot high forms using the manager helper.
    - `confluence_lib_test.pine` plots the calculated confluence weight as a line.
    - `fib_extension_lib_test.pine` draws basic Fibonacci levels using the style defaults.
+   - `fibo_projector_test.pine` shows projection levels and an ATR-based Golden Zone.
    - `conf_box_lib_test.pine` creates a single box and then clears it at the last bar.
    - `style_lib_test.pine` simply plots the close series using one of the palette colors.
 
