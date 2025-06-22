@@ -100,6 +100,72 @@ Indicador S/R final
 
 qa_backtest, visual_refiner
 
+array_utils_lib.pine
+
+Funções auxiliares de arrays
+
+impl_codex
+
+bucketing_lib.pine
+
+Agrupamento de níveis por proximidade
+
+impl_codex
+
+conf_box_lib.pine
+
+Gerenciamento de boxes de confluência
+
+impl_codex, visual_refiner
+
+fib_confluence_engine.pine
+
+Detecção de clusters de Fibonacci
+
+impl_codex, visual_refiner
+
+fib_extension_lib.pine
+
+Desenho de extensões Fibonacci
+
+impl_codex, visual_refiner
+
+fibo_projector.pine
+
+Projeção de níveis Fibonacci
+
+impl_codex, visual_refiner
+
+map_utils_lib.pine
+
+Funções utilitárias para mapas
+
+impl_codex
+
+matrix_utils_lib.pine
+
+Funções utilitárias para matrizes
+
+impl_codex
+
+pivot_ring_buffer_lib.pine
+
+Buffer circular de pivôs
+
+impl_codex
+
+price_precision_lib.pine
+
+Arredondamento para o tick mínimo
+
+impl_codex
+
+sr_manager_lib.pine
+
+Gestão de zonas S/R com logística
+
+impl_codex, qa_backtest
+
 3. Especificação dos Agentes
 
 3.1 Analyzer Agent (analyzer_code@v1.0)
