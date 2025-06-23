@@ -176,6 +176,10 @@ Responsabilidades
 
 Escanear código Pine e libs em busca de bugs, anti‑padrões e incoerências.
 
+etectar arquivos que usam `export` mas não declararam `library()` e gerar issue
+
+de severidade **high**.
+
 Emitir relatório de issues classificados (bug, dívida técnica, oportunidade de performance, falta de documentação).
 
 Sugerir testes unitários ou de backtest necessários.

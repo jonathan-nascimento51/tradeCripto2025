@@ -58,3 +58,26 @@ def get_file_structure(directory: str) -> List[str]:
             rel = os.path.relpath(os.path.join(root_dir, fname), directory)
             paths.append(rel)
     return sorted(paths)
+
+
+def is_pine_library(file_path: str) -> bool:
+    """Return True if `file_path` appears to be a Pine library.
+
+    The heuristic looks for exported members as well as a
+    `library("` declaration. Both must be present for the file
+    to be considered a valid library module.
+    """
+    if not os.path.isfile(file_path):
+        return False
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
+    return "export" in text and "library(" in text
+
+
+def has_exports_without_library(file_path: str) -> bool:
+    """Check if the file uses `export` but is missing `library()`."""
+    if not os.path.isfile(file_path):
+        return False
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
+    return "export" in text and "library(" not in text
