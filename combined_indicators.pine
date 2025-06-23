@@ -250,3 +250,18 @@ if confEnabledInput
         cb.clearBoxes(confBoxes)
 else
     cb.clearBoxes(confBoxes)
+
+if barstate.isfirst
+    table.cell(infoTable, 0, 0, "Indicador", bgcolor=sty.LABEL_BG, text_color=sty.LABEL_TEXT_COLOR, text_halign=text.align_center)
+    table.cell(infoTable, 0, 1, "Valor", bgcolor=sty.LABEL_BG, text_color=sty.LABEL_TEXT_COLOR, text_halign=text.align_center)
+
+table.cell(infoTable, 1, 0, "RSI")
+table.cell(infoTable, 1, 1, str.tostring(rsi, "#.##"))
+table.cell(infoTable, 2, 0, "ATR")
+table.cell(infoTable, 2, 1, str.tostring(atr, "#.##"))
+table.cell(infoTable, 3, 0, "Vol MA")
+table.cell(infoTable, 3, 1, str.tostring(volMA, "#.##"))
+table.cell(infoTable, 4, 0, "SR Zones")
+table.cell(infoTable, 4, 1, str.tostring(array.size(sr_zones)))
+table.cell(infoTable, 5, 0, "Fib Levels")
+table.cell(infoTable, 5, 1, str.tostring(array.size(fib_levels)))
