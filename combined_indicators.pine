@@ -96,6 +96,7 @@ var float[] trainY  = array.new<float>()
 // Flag that indicates if the logistic model has been trained for the
 // current set of samples.
 var bool trained = false
+var string prevWeights = ""
 
 f_pushSample(float x1, float x2, float x3, float y) =>
     array.push(trainX1, x1)
@@ -118,7 +119,8 @@ var float finalW2 = logW2Input
 var float finalW3 = 0.0
 
 if useTrainedWeightsInput
-    if str.length(weightsStrInput) > 0
+    if str.length(weightsStrInput) > 0 and weightsStrInput != prevWeights
+        prevWeights := weightsStrInput
         string[] parts = str.split(weightsStrInput, ",")
         if array.size(parts) >= 3
             finalW0 := str.tonumber(array.get(parts, 0))
@@ -145,17 +147,16 @@ else
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
 // --- Lógica de Mercado ---
-rsi = ta.rsi(close, length)
-atr = ta.atr(length)
-float volMA = ta.sma(volume, length)
+rsi = srEnabledInput ? ta.rsi(close, lengthInput) : na
+atr = (srEnabledInput or confEnabledInput) ? ta.atr(lengthInput) : na
+float volMA = srEnabledInput ? ta.sma(volume, lengthInput) : na
 
-ph = pv.pivotHigh(high, length)
-pl = pv.pivotLow(low, length)
-ph_prev = pv.pivotHigh(high[1], length)
-pl_prev = pv.pivotLow(low[1], length)
+ph = (srEnabledInput or fibEnabledInput) ? pv.pivotHigh(high, lengthInput) : na
+pl = (srEnabledInput or fibEnabledInput) ? pv.pivotLow(low, lengthInput) : na
+ph_prev = (srEnabledInput or fibEnabledInput) ? pv.pivotHigh(high[1], lengthInput) : na
+pl_prev = (srEnabledInput or fibEnabledInput) ? pv.pivotLow(low[1], lengthInput) : na
 
-// Precomputa o threshold de confluência em pontos (ATR * fator) uma vez por barra
-float confThreshPx = atr * confThresholdATRInput
+float confThreshPx = confEnabledInput and not na(atr) ? atr * confThresholdATRInput : na
 
 // Cria uma nova zona S/R com base em um pivô e adiciona ao array global
 // --- Estado Global da Origem do Pivô ---
@@ -201,8 +202,8 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=0)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=0)
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
@@ -241,7 +242,7 @@ if confEnabledInput
                         conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
                         float score = result.confluence_weight
                         if score > 0
-                            color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.yellow, color.purple)
+                            color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.green, color.red)
                             string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fibo.level) + " (" + str.tostring(fibo.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
                             box confBox = box.new(bar_index, math.max(zone.level, fibo.level), bar_index + confluenceBoxWidth, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
