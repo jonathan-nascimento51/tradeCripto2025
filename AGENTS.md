@@ -309,6 +309,7 @@ Persona«Engenheiro(a) de QA Quantitativa.»
 Responsabilidades
 
 Rodar backtests automáticos nos scripts combined_indicators.pine e support_resistance_logistic_regression_example.pine.
+Os dados OHLCV devem ser exportados manualmente do TradingView (menu *Export chart data...*) e salvos em CSV na pasta `data/`.
 
 Calcular métricas‑chave: Win‑rate, Profit‑factor, Max DD, Sharpe, Latência.
 Agrupar a curva de patrimônio de todas as janelas WFO e gerar intervalos de confiança via simulações de Monte Carlo.
@@ -319,7 +320,11 @@ Sinalizar regressões ou melhorias.
 
 Ferramentas
 
-TradingView CLI / Pinescript Tester API
+CSV exportado manualmente do TradingView
+Pandas para CSV de trades
+Fluxo manual:
+1. Exportar o intervalo desejado via *Export chart data...*.
+2. Salvar em `data/<ativo>_<tf>.csv` e usar no `qa_backtest`.TradingView CLI / Pinescript Tester API
 
 Pandas para CSV de trades
 

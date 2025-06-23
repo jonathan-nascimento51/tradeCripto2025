@@ -240,7 +240,13 @@ With the dependencies installed you can execute tools like
 import errors.
 
 ## Advanced Backtesting
-The `tools/qa_backtest.py` script performs walk-forward optimization using TradingView's API and Monte Carlo simulations. Example usage:
+The `tools/qa_backtest.py` script performs walk-forward optimization on CSV files exported manually from TradingView. There is no official API. To generate a dataset:
+
+1. Abra o ativo e timeframe desejados em TradingView.
+2. Selecione **Export chart data...** no menu do gráfico.
+3. Salve o arquivo em `data/BTCUSD_1H.csv` (ou similar) e passe esse caminho para o script.
+
+O script também executa simulações de Monte Carlo. Example usage:
 ```bash
 python tools/qa_backtest.py combined_indicators.pine data/BTCUSD_1H.csv --grid len=5,10 step=1,2 --insample 500 --outsample 100 --simulate
 ```
