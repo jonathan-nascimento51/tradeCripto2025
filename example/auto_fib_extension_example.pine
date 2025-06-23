@@ -3,30 +3,30 @@ indicator("Auto Fib Extension Refatorado", overlay=true)
 
 // === INPUTS ===
 // Pivot settings
-depth        = input.int(10, "Pivot Depth", minval=2, tooltip="Bar depth for pivot detection")
-reverse      = input.bool(false, "Reverse Direction", inline="Rev")
+depthInput        = input.int(10, "Pivot Depth", minval=2, tooltip="Bar depth for pivot detection")
+reverseInput      = input.bool(false, "Reverse Direction", inline="Rev")
 
 // Line extension
-extendLeft   = input.bool(false, "Extend Left", inline="Ext")
-extendRight  = input.bool(true,  "Extend Right", inline="Ext")
+extendLeftInput   = input.bool(false, "Extend Left", inline="Ext")
+extendRightInput  = input.bool(true,  "Extend Right", inline="Ext")
 extendMode   = extend.none
-if      extendLeft and extendRight
+if      extendLeftInput and extendRightInput
     extendMode := extend.both
-else if extendLeft
+else if extendLeftInput
     extendMode := extend.left
-else if extendRight
+else if extendRightInput
     extendMode := extend.right
 
 // Display options
-showPrices   = input.bool(true,  "Show Prices")
-showLevels   = input.bool(true,  "Show Levels")
-labelPos     = input.string("Left", "Labels Position", options=["Left","Right"])
-valueFormat  = input.string("Values", "Levels Format", options=["Values","Percent"])
-alphaBg      = input.int(85,   "Background Transparency", minval=0, maxval=100)
+showPricesInput   = input.bool(true,  "Show Prices")
+showLevelsInput   = input.bool(true,  "Show Levels")
+labelPosInput     = input.string("Left", "Labels Position", options=["Left","Right"])
+valueFormatInput  = input.string("Values", "Levels Format", options=["Values","Percent"])
+alphaBgInput      = input.int(85,   "Background Transparency", minval=0, maxval=100)
 
 // Thresholds
-upperThresh  = input.float(0.236, "Upper Ratio Threshold")
-lowerThresh  = input.float(1.0,   "Lower Ratio Threshold")
+upperThreshInput  = input.float(0.236, "Upper Ratio Threshold")
+lowerThreshInput  = input.float(1.0,   "Lower Ratio Threshold")
 
 // Fibonacci ratios and colors
 var float[] fibRatios = array.new<float>()
@@ -34,7 +34,7 @@ var color[] fibColors = array.new<color>()
 var int prevAlphaBg = na
 
 // Allocate the arrays only once and rebuild when transparency changes
-if barstate.isfirst or prevAlphaBg != alphaBg
+if barstate.isfirst or prevAlphaBg != alphaBgInput
     array.clear(fibRatios)
     array.clear(fibColors)
     array.push(fibRatios, 0.0)
@@ -45,15 +45,15 @@ if barstate.isfirst or prevAlphaBg != alphaBg
     array.push(fibRatios, 0.786)
     array.push(fibRatios, 1.0)
     array.push(fibRatios, 1.618)
-    array.push(fibColors, color.new(color.blue,     alphaBg))
-    array.push(fibColors, color.new(color.teal,     alphaBg))
-    array.push(fibColors, color.new(color.green,    alphaBg))
-    array.push(fibColors, color.new(color.yellow,   alphaBg))
-    array.push(fibColors, color.new(color.orange,   alphaBg))
-    array.push(fibColors, color.new(color.fuchsia,  alphaBg))
-    array.push(fibColors, color.new(color.gray,     alphaBg))
-    array.push(fibColors, color.new(color.red,      alphaBg))
-    prevAlphaBg := alphaBg
+    array.push(fibColors, color.new(color.blue,     alphaBgInput))
+    array.push(fibColors, color.new(color.teal,     alphaBgInput))
+    array.push(fibColors, color.new(color.green,    alphaBgInput))
+    array.push(fibColors, color.new(color.yellow,   alphaBgInput))
+    array.push(fibColors, color.new(color.orange,   alphaBgInput))
+    array.push(fibColors, color.new(color.fuchsia,  alphaBgInput))
+    array.push(fibColors, color.new(color.gray,     alphaBgInput))
+    array.push(fibColors, color.new(color.red,      alphaBgInput))
+    prevAlphaBg := alphaBgInput
 
 // === UTILS ===
 // Draw a line or update existing
@@ -71,10 +71,10 @@ f_drawLine(_price, _col, _lastLine) =>
 f_drawLabel(_price, _text, _col, _refLine) =>
     if na(_price)
         na
-    x = labelPos == "Left" ? line.get_x1(_refLine) : line.get_x2(_refLine)
-    style = labelPos == "Left" ? label.style_label_right : label.style_label_left
-    align = labelPos == "Left" ? text.align_right : text.align_left
-    textFmt = labelPos == "Left" ? _text + "\n" : "       " + _text + "\n"
+    x = labelPosInput == "Left" ? line.get_x1(_refLine) : line.get_x2(_refLine)
+    style = labelPosInput == "Left" ? label.style_label_right : label.style_label_left
+    align = labelPosInput == "Left" ? text.align_right : text.align_left
+    textFmt = labelPosInput == "Left" ? _text + "\n" : "       " + _text + "\n"
     var label lbl = label.new(x, _price, textFmt, textcolor=_col, style=style, textalign=align, color=#00000000, xloc=xloc.bar_time)
     label.set_xy(lbl, x, _price)
     label.set_text(lbl, textFmt)
@@ -83,16 +83,16 @@ f_drawLabel(_price, _text, _col, _refLine) =>
 // === PIVOT & FIB CALCULATION ===
 f_calculate() =>
     // Detect pivot: simplistic high/low comparison—replace with custom logic if needed
-    isHighPivot = na(ta.pivothigh(high, depth, depth))
-    isLowPivot  = na(ta.pivotlow(low, depth, depth))
+    isHighPivot = na(ta.pivothigh(high, depthInput, depthInput))
+    isLowPivot  = na(ta.pivotlow(low, depthInput, depthInput))
 
     // Track last pivot prices
     var float lastHigh = na
     var float lastLow  = na
     if isHighPivot
-        lastHigh := high[depth]
+        lastHigh := high[depthInput]
     if isLowPivot
-        lastLow  := low[depth]
+        lastLow  := low[depthInput]
 
     // Determine start/end for fib
     pivotHigh = lastHigh
@@ -104,7 +104,7 @@ f_calculate() =>
     diff   = math.abs(startP - endP)
 
     // Validate threshold
-    valid = isHighLast ? (pivotLow < endP - diff * lowerThresh or pivotLow > endP - diff * upperThresh) : (pivotHigh > endP + diff * lowerThresh or pivotHigh < endP + diff * upperThresh)
+    valid = isHighLast ? (pivotLow < endP - diff * lowerThreshInput or pivotLow > endP - diff * upperThreshInput) : (pivotHigh > endP + diff * lowerThreshInput or pivotHigh < endP + diff * upperThreshInput)
 
     if valid
         [endP, diff]
@@ -131,7 +131,7 @@ else
 // === DRAW FIB LEVELS ===
 var line lastLine = na
 var label lastLbl = na
-if not na(endPrice) and showLevels
+if not na(endPrice) and showLevelsInput
     for i = 0 to array.size(fibRatios) - 1
         ratio = array.get(fibRatios, i)
         lvl   = endPrice + span * ratio
@@ -141,8 +141,8 @@ if not na(endPrice) and showLevels
         lastLine := f_drawLine(lvl, col, lastLine)
 
         // draw labels
-        if showPrices
-            txt = valueFormat == "Percent" ? str.tostring(ratio * 100, "#.#") + "%" : str.tostring(lvl, "#.##")
+        if showPricesInput
+            txt = valueFormatInput == "Percent" ? str.tostring(ratio * 100, "#.#") + "%" : str.tostring(lvl, "#.##")
             lastLbl := f_drawLabel(lvl, txt, col, lastLine)
 
     // Reset references for next bar

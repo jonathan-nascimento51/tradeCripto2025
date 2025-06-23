@@ -23,32 +23,32 @@ var color borderColorValid = na
 var color borderColorBroken = na
 
 // ⁕ Subsistemas
-srEnabled = input.bool(true, "Enable Support/Resistance", group="Subsystems")
+srEnabledInput = input.bool(true, "Enable Support/Resistance", group="Subsystems")
 
 // ⁕ Parâmetros S/R
-length = input.int(14, "Pivot Length", group="Support/Resistance")
-probThreshold = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Support/Resistance")
-retestCount = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
-volatilityBandATR = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
-rsiThreshold = input.float(50, "RSI Threshold", group="Support/Resistance")
-retestProbWeight = input.float(0.05, "Prob Increase per Retest", step=0.01, group="Support/Resistance")
-logW0 = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
-logW1 = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
-logW2 = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
-useTrainedWeights = input.bool(false, "Use Trained Weights", group="Support/Resistance")
-weightsStr = input.string("", "External Weights w0,w1,w2", group="Support/Resistance", tooltip="Opcional: insira pesos separados por vírgula. Deixe em branco para treinar com o histórico.")
-trainRate = input.float(0.05, "Train Learning Rate", minval=0.001, step=0.001, group="Support/Resistance")
-trainEpochs = input.int(50, "Train Epochs", minval=1, group="Support/Resistance")
+lengthInput = input.int(14, "Pivot Length", group="Support/Resistance")
+probThresholdInput = input.float(0.7, "Prob Threshold", minval=0, maxval=1, group="Support/Resistance")
+retestCountInput = input.int(1, "Retests to Validate", minval=1, maxval=5, group="Support/Resistance")
+volatilityBandATRInput = input.float(0.15, "Volatility Band Width (ATR)", step=0.05, group="Support/Resistance", tooltip="Largura da zona em múltiplos de ATR. Ex: 0.15 = Nível ± (0.15 * ATR)")
+rsiThresholdInput = input.float(50, "RSI Threshold", group="Support/Resistance")
+retestProbWeightInput = input.float(0.05, "Prob Increase per Retest", step=0.01, group="Support/Resistance")
+logW0Input = input.float(1.0, "Logistic Weight 0", group="Support/Resistance")
+logW1Input = input.float(1.0, "Logistic Weight 1", group="Support/Resistance")
+logW2Input = input.float(1.0, "Logistic Weight 2", group="Support/Resistance")
+useTrainedWeightsInput = input.bool(false, "Use Trained Weights", group="Support/Resistance")
+weightsStrInput = input.string("", "External Weights w0,w1,w2", group="Support/Resistance", tooltip="Opcional: insira pesos separados por vírgula. Deixe em branco para treinar com o histórico.")
+trainRateInput = input.float(0.05, "Train Learning Rate", minval=0.001, step=0.001, group="Support/Resistance")
+trainEpochsInput = input.int(50, "Train Epochs", minval=1, group="Support/Resistance")
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib). Using the exported constants
 // ensures the defaults are of type `const color`, satisfying `input.color`.
-srColorRes    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
-srColorSup    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
-srColorValid  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
-srColorBroken = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
+srColorResInput    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
+srColorSupInput    = input.color(sty.SR_COLOR_SUP,    "Support (Active Fill)",  group="Style – S/R")
+srColorValidInput  = input.color(sty.SR_COLOR_VALID,  "Validated Zone",       group="Style – S/R")
+srColorBrokenInput = input.color(sty.SR_COLOR_BROKEN, "Broken Zone",          group="Style – S/R")
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
-showPivotMarkers = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
+showPivotMarkersInput = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
 
 // ─────────────────────────── Estruturas de Dados (UDT) ─────────────────────
 const int MAX_SR_ZONES = 30
@@ -77,14 +77,14 @@ f_pushSample(float x1, float x2, float x3, float y) =>
 // Determine which weights will be used for the logistic model. If a comma
 // separated string is provided via input, parse it. Otherwise, attempt to
 // train using the collected pivot history.
-var float finalW0 = logW0
-var float finalW1 = logW1
-var float finalW2 = logW2
+var float finalW0 = logW0Input
+var float finalW1 = logW1Input
+var float finalW2 = logW2Input
 var float finalW3 = 0.0
 
-if useTrainedWeights
-    if str.length(weightsStr) > 0
-        string[] parts = str.split(weightsStr, ",")
+if useTrainedWeightsInput
+    if str.length(weightsStrInput) > 0
+        string[] parts = str.split(weightsStrInput, ",")
         if array.size(parts) >= 3
             finalW0 := str.tonumber(array.get(parts, 0))
             finalW1 := str.tonumber(array.get(parts, 1))
@@ -94,29 +94,29 @@ if useTrainedWeights
         trained := true
     else if (not trained) and array.size(trainY) > 0
         // Continue training from the previous weight state when retraining.
-        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainX3, trainY, trainRate, trainEpochs, finalW0, finalW1, finalW2, finalW3)
+        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainX3, trainY, trainRateInput, trainEpochsInput, finalW0, finalW1, finalW2, finalW3)
         finalW0 := res.w0
         finalW1 := res.w1
         finalW2 := res.w2
         finalW3 := res.w3
         trained := true
 else
-    finalW0 := logW0
-    finalW1 := logW1
-    finalW2 := logW2
+    finalW0 := logW0Input
+    finalW1 := logW1Input
+    finalW2 := logW2Input
     finalW3 := 0.0
     trained := false
 
 // ─────────────────────────── Funções de Gerenciamento ────────────────
 // --- Lógica de Mercado ---
-rsi = ta.rsi(close, length)
-atr = ta.atr(length)
-float volMA = ta.sma(volume, length)
+rsi = ta.rsi(close, lengthInput)
+atr = ta.atr(lengthInput)
+float volMA = ta.sma(volume, lengthInput)
 
-ph = pv.pivotHigh(high, length)
-pl = pv.pivotLow(low, length)
-ph_prev = pv.pivotHigh(high[1], length)
-pl_prev = pv.pivotLow(low[1], length)
+ph = pv.pivotHigh(high, lengthInput)
+pl = pv.pivotLow(low, lengthInput)
+ph_prev = pv.pivotHigh(high[1], lengthInput)
+pl_prev = pv.pivotLow(low[1], lengthInput)
 
 // --- Estado Global da Origem do Pivô ---
 // Flags para marcar se um pivô foi formado na barra atual
@@ -124,14 +124,14 @@ bool isPivotHighOrigin = not na(ph) and na(ph_prev)
 bool isPivotLowOrigin  = not na(pl) and na(pl_prev)
 
 // --- Lógica de Suporte / Resistência ---
-if srEnabled
-    borderColorRes := color.new(srColorRes, 75)
-    borderColorSup := color.new(srColorSup, 75)
-    borderColorValid := color.new(srColorValid, 50)
-    borderColorBroken := color.new(srColorBroken, 85)
+if srEnabledInput
+    borderColorRes := color.new(srColorResInput, 75)
+    borderColorSup := color.new(srColorSupInput, 75)
+    borderColorValid := color.new(srColorValidInput, 50)
+    borderColorBroken := color.new(srColorBrokenInput, 85)
 
-    srm.createZone(sr_zones, ph, false, srColorRes, borderColorRes, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
-    srm.createZone(sr_zones, pl, true, srColorSup, borderColorSup, rsi, rsiThreshold, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThreshold, volatilityBandATR, length, MAX_SR_ZONES)
+    srm.createZone(sr_zones, ph, false, srColorResInput, borderColorRes, rsi, rsiThresholdInput, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThresholdInput, volatilityBandATRInput, lengthInput, MAX_SR_ZONES)
+    srm.createZone(sr_zones, pl, true, srColorSupInput, borderColorSup, rsi, rsiThresholdInput, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThresholdInput, volatilityBandATRInput, lengthInput, MAX_SR_ZONES)
 
     for zone in sr_zones
         if zone.status != "Broken"
@@ -139,14 +139,14 @@ if srEnabled
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
 
             if isRetest
-                bool validated = sru.handleRetest(zone, retestCount, retestProbWeight, borderColorValid, srColorValid)
+                bool validated = sru.handleRetest(zone, retestCountInput, retestProbWeightInput, borderColorValid, srColorValidInput)
                 if validated
                     f_pushSample(zone.x1, zone.x2, zone.x3, 1.0)
                     trained := false
 
             bool isDominant = math.abs(close - open) > atr or volume > volMA
             if isBroken and isDominant
-                bool earlyBreak = sru.markBroken(zone, retestCount, borderColorBroken, srColorBroken)
+                bool earlyBreak = sru.markBroken(zone, retestCountInput, borderColorBroken, srColorBrokenInput)
                 if earlyBreak
                     f_pushSample(zone.x1, zone.x2, zone.x3, 0.0)
                     trained := false
@@ -159,9 +159,9 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotHighOrigin ? ph : na,
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na,
           title="PH Marker", style=shape.triangledown, location=location.absolute,
           color=color.new(borderColorRes, 70), size=size.tiny, offset=0)
-plotshape(bar_index >= length and srEnabled and showPivotMarkers and isPivotLowOrigin ? pl : na,
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na,
           title="PL Marker", style=shape.triangleup, location=location.absolute,
           color=color.new(borderColorSup, 70), size=size.tiny, offset=0)
