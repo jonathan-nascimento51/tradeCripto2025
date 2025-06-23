@@ -126,8 +126,8 @@ additional parameters:
 When `useAdaptiveGZ` is `false`, the classic 1.618 projection zone sized by
 `atrMult` remains available.
 
-### `libraries/fib_bucketing_lib.pine`
-Groups Fibonacci levels into price buckets by rounding to the symbol's minimum tick using a proximity threshold.
+### `libraries/bucketing_lib.pine`
+Provides `bucketMap()` to group nearby price levels into buckets rounded to the symbol's minimum tick.
 
 ### `libraries/risk_manager.pine`
 Provides Kelly-based position sizing along with helpers for stop-loss and take-profit levels.
