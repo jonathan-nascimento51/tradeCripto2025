@@ -45,7 +45,15 @@ export newProjector() =>
 // `atrVal` is the current ATR value used to size the golden zone.
 // `atrMult` controls how wide the golden zone is (in ATR multiples).
 // -----------------------------------------------------------------------------
-export method computeLevels(Projector self, float p1, float p2, float atrVal, float atrMult) =>
+export method computeLevels(
+    Projector self,
+    float p1,
+    float p2,
+    float atrVal,
+    float atrMult,
+    bool useAdaptiveGZ,
+    float kFactor
+) =>
     self.isUp := p2 > p1
     float diff = math.abs(p2 - p1)
     array.clear(self.levels)
@@ -53,10 +61,21 @@ export method computeLevels(Projector self, float p1, float p2, float atrVal, fl
         float r = array.get(self.ratios, i)
         float lvl = self.isUp ? p2 + diff * r : p2 - diff * r
         array.push(self.levels, lvl)
-    float gLevel = self.isUp ? p2 + diff * 1.618 : p2 - diff * 1.618
-    float offset = atrVal * atrMult
-    self.lower := gLevel - offset
-    self.upper := gLevel + offset
+
+    if useAdaptiveGZ
+        float Watr = kFactor * atrVal
+        float dRatio = Watr / diff
+        float ratioLo = 0.5 - dRatio
+        float ratioHi = 0.5 + dRatio
+        float lowerRatio = math.max(0.0, ratioLo)
+        float upperRatio = math.min(1.0, ratioHi)
+        self.lower := self.isUp ? p2 + diff * lowerRatio : p2 - diff * lowerRatio
+        self.upper := self.isUp ? p2 + diff * upperRatio : p2 - diff * upperRatio
+    else
+        float gLevel = self.isUp ? p2 + diff * 1.618 : p2 - diff * 1.618
+        float offset = atrVal * atrMult
+        self.lower := gLevel - offset
+        self.upper := gLevel + offset
 
 // -----------------------------------------------------------------------------
 // clearDrawings
