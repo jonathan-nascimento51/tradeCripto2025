@@ -1,0 +1,29 @@
+//@version=6
+indicator('Risk Manager Test', overlay=true)
+import "../libraries/risk_manager.pine" as rm
+import "../libraries/style_lib.pine" as st
+
+// Inputs for demonstration
+win_rate        = input.float(0.55, 'Win Rate', step=0.01)
+win_loss_ratio  = input.float(1.5, 'Avg Win/Loss', step=0.1)
+kelly_fraction  = input.float(0.5, 'Fractional Kelly', step=0.1)
+equity          = input.float(10000, 'Total Equity')
+risk_usd        = input.float(200, 'Risk Per Trade')
+stop_pct        = input.float(0.02, 'Stop %', step=0.01)
+reward_ratio    = input.float(2.0, 'Reward/Risk', step=0.1)
+
+st.Styles styles = st.getStyles()
+
+float kelly  = rm.calcKellyFractional(win_rate, win_loss_ratio, kelly_fraction)
+float qty    = rm.getPositionSize(kelly, equity, close, risk_usd)
+float stop   = rm.calcStopLoss(close, stop_pct, true)
+float target = rm.calcTakeProfit(close, stop_pct, reward_ratio, true)
+
+plot(stop,   color=styles.sr_color_res, title='Stop')
+plot(target, color=styles.fib_ext_up_col, title='Target')
+
+if barstate.islast
+    label.new(bar_index, high, 'Qty: ' + str.tostring(qty, format.volume),
+              style=label.style_label_down, textcolor=styles.anchor_text_color)
+
+// Expected output: red stop-loss line below price, green take-profit above, and a label with the computed quantity on the last bar.

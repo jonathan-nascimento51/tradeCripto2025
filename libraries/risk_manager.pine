@@ -1,0 +1,45 @@
+//@version=6
+library("RiskManager", true)
+
+// -----------------------------------------------------------------------------
+// calcKellyFractional
+// Returns the Kelly fraction adjusted by a user supplied fractional factor.
+// The standard Kelly criterion is: f* = win_rate - (1 - win_rate) / ratio
+// where `ratio` is the average win/loss ratio.
+// The result is clamped to the [0,1] range and then multiplied by
+// `fractional_factor` to optionally scale down the position size.
+// -----------------------------------------------------------------------------
+export calcKellyFractional(float win_rate, float avg_win_loss_ratio, float fractional_factor) =>
+    float kelly = win_rate - (1.0 - win_rate) / avg_win_loss_ratio
+    kelly := math.max(math.min(kelly, 1.0), 0.0)
+    kelly * fractional_factor
+
+// -----------------------------------------------------------------------------
+// getPositionSize
+// Calculates position size based on account equity and Kelly fraction.
+// `risk_per_trade_usd` acts as a cap for the dollar amount allocated to one
+// position. The final amount is converted to quantity using `entry_price`.
+// -----------------------------------------------------------------------------
+export getPositionSize(float kelly_fraction, float total_equity, float entry_price, float risk_per_trade_usd) =>
+    float allocation = total_equity * kelly_fraction
+    float risk_cap   = math.min(allocation, risk_per_trade_usd)
+    risk_cap / entry_price
+
+// -----------------------------------------------------------------------------
+// calcStopLoss
+// Simple helper returning the stop price given a percentage risk.
+// When `is_long` is true the stop is placed below the entry, otherwise above it.
+// -----------------------------------------------------------------------------
+export calcStopLoss(float entry_price, float risk_pct, bool is_long) =>
+    is_long ? entry_price * (1 - risk_pct) : entry_price * (1 + risk_pct)
+
+// -----------------------------------------------------------------------------
+// calcTakeProfit
+// Computes a take-profit level using a reward/risk ratio relative to the stop
+// distance. Useful for symmetric R multiples.
+// -----------------------------------------------------------------------------
+export calcTakeProfit(float entry_price, float risk_pct, float reward_risk, bool is_long) =>
+    float stop = calcStopLoss(entry_price, risk_pct, is_long)
+    float risk_per_unit = math.abs(entry_price - stop)
+    float profit = risk_per_unit * reward_risk
+    is_long ? entry_price + profit : entry_price - profit

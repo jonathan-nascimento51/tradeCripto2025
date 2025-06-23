@@ -16,6 +16,7 @@ Each component is multiplied by its respective coefficient before being summed i
 
 - Logistic model expanded to consider volume as a third feature.
 - Support/resistance probabilities now increase slightly on each retest (configurable).
+- New **RiskManager** library provides Kelly-based position sizing utilities.
 
 ```pinescript
 import "./libraries/confluence_lib.pine" as conf
@@ -119,6 +120,9 @@ Computes Fibonacci projection levels from a pivot pair and highlights an adaptiv
 
 ### `libraries/fib_bucketing_lib.pine`
 Groups Fibonacci levels into price buckets by rounding to the symbol's minimum tick using a proximity threshold.
+
+### `libraries/risk_manager.pine`
+Provides Kelly-based position sizing along with helpers for stop-loss and take-profit levels.
 
 in the `library()` declaration (e.g. `PivotUtils` with version `2`).
 2. In your indicator or strategy, import the library with the `import` statement:

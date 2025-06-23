@@ -36,6 +36,7 @@ Load any `tests/*.pine` file using the steps above. Each one demonstrates a sing
 - `bucketing_lib_test.pine` – orange labels mark bucket counts for groups with at least two levels.
 - `matrix_utils_lib_test.pine` – labels show "2" and "-1" on the first bar and "done" on the last.
 - `price_precision_lib_test.pine` – first bar label lists mintick, raw and rounded prices; "Done" appears on the last bar.
+- `risk_manager_test.pine` – stop-loss and take-profit lines plot with a label displaying the computed position size.
 
 ### Prerequisites
 

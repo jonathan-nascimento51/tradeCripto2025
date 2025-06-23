@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Bumped Prompt-Builder to **v2.0** with a new `<backtest_and_validate>` action
   that instructs `qa_backtest` to run walk-forward optimization and Monte Carlo
   analyses whenever backtesting is requested.
+- Added **RiskManager** library implementing Kelly-based position sizing with stop helpers.
 
 ## [v2.0.0] - 2025-06-20
 ### Added
