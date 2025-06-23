@@ -147,7 +147,9 @@ in the `library()` declaration (e.g. `PivotUtils` with version `2`).
    plot(close, color=styles.mainColor)
    ```
 
-   Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.
+Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.
+
+Both `combined_indicators.pine` and `support_resistance_logistic_regression_example.pine` keep the logistic model weights fixed unless the **Use Trained Weights** input is enabled. The coefficients may be entered manually or trained on‑the‑fly when this option is turned on.
 
 ## Ajustes Visuais e Customização
 - Agora é possível parametrizar a largura dos boxes de confluência através do input "Confluence Box Width" no indicador. Essa mudança visa melhorar a adaptação visual conforme o perfil do ativo.
