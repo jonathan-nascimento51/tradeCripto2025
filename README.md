@@ -213,6 +213,13 @@ git commit -m "Atualiza convencoes de commit – agent::doc_writer"
 git push
 ```
 Every commit should include the prefix `agent::<nome>` in the message and should not be amended to keep history intact.
+
+## Advanced Backtesting
+The `tools/qa_backtest.py` script performs walk-forward optimization using TradingView's API and Monte Carlo simulations. Example usage:
+```bash
+python tools/qa_backtest.py combined_indicators.pine data/BTCUSD_1H.csv --grid len=5,10 step=1,2 --insample 500 --outsample 100 --simulate
+```
+Results are saved in `benchmarks/advanced_backtests.json` and include 95% confidence intervals.
 ## Contribution Guidelines
 
 - Every commit message must begin with `agent::<nome>` as described in `AGENTS.md`.
