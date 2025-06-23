@@ -13,6 +13,7 @@ export bucketMap(array<float> levels, simple float proximity) =>
     if proximity > 0
         for lvl in levels
             if not na(lvl)
-                map.put(buckets, b, map.get_if_contains(buckets, b, 0) + 1)
-                buckets.put(b, (buckets.contains(b) ? buckets.get(b) : 0) + 1)
+                float key = pp.roundToTick(math.round(lvl / proximity) * proximity)
+                int cnt = map.get_if_contains(buckets, key, 0) + 1
+                map.put(buckets, key, cnt)
     buckets
