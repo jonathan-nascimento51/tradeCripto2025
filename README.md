@@ -117,9 +117,10 @@ Computes Fibonacci projection levels from a pivot pair and highlights an adaptiv
 *Golden Zone* sized using ATR. The `Projector` type stores levels and offers
 `computeLevels()` and `draw()` helpers.
 
-## Using the Libraries
+### `libraries/fib_bucketing_lib.pine`
+Groups Fibonacci levels into price buckets by rounding to the symbol's minimum tick using a proximity threshold.
 
-1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it using the same name shown in the `library()` declaration (e.g. `PivotUtils` with version `2`).
+in the `library()` declaration (e.g. `PivotUtils` with version `2`).
 2. In your indicator or strategy, import the library with the `import` statement:
 
    ```pinescript

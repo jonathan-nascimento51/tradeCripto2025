@@ -1,0 +1,25 @@
+//@version=6
+indicator('Fib BucketingLib Test', overlay=true)
+import "../libraries/fib_bucketing_lib.pine" as fb
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
+
+float[] levels = array.from(close * 0.236, close * 0.382,
+                           close * 0.3825, close * 0.618,
+                           close * 1.618)
+float proximity = ta.atr(14) * 0.25
+map<float,int> result = fb.f_bucketMap(levels, proximity)
+
+if barstate.islast
+    for key in result.keys()
+        int c = result.get(key)
+        if c >= 2
+            label.new(bar_index + 5, key,
+                      str.tostring(c),
+                      color=color.orange,
+                      textcolor=styles.label_text_color,
+                      style=label.style_label_left,
+                      xloc=xloc.bar_index)
+
+// Expected output: orange labels appear just to the right of the last bar showing bucket counts.

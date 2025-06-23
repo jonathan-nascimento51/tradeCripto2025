@@ -1,0 +1,17 @@
+//@version=6
+library("FibBucketingLib", true)
+import "../libraries/map_utils_lib.pine" as mu
+
+//@description Groups Fibonacci levels by rounding to the nearest bucket.
+//@param levels    array<float>
+//@param proximity simple float (bucket width)
+//@returns         map<float,int>
+export f_bucketMap(array<float> levels, simple float proximity) =>
+    map<float,int> buckets = map.new<float,int>()
+    if proximity > 0
+        for lvl in levels
+            if not na(lvl)
+                float key = math.round_to_mintick(math.round(lvl / proximity) * proximity)
+                int cnt = mu.get_if_contains(buckets, key, 0) + 1
+                map.put(buckets, key, cnt)
+    buckets
