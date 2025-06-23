@@ -96,5 +96,4 @@ export method draw(Projector self, int left, int right, color baseColor, color e
         lb.set_x(left + lblOff)
         array.push(self.lines, ln)
         array.push(self.labels, lb)
-    if not na(self.lower) and not na(self.upper)
-        self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor,80), border_color=goldColor
+    self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor, 80), border_color=goldColor)
