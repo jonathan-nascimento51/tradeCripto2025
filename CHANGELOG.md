@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
   that instructs `qa_backtest` to run walk-forward optimization and Monte Carlo
   analyses whenever backtesting is requested.
 - Added **RiskManager** library implementing Kelly-based position sizing with stop helpers.
+- `fibo_projector.pine` now supports an adaptive golden zone via the new
+  `useAdaptiveGZ` and `kFactor` parameters and has a demo toggle in
+  `fibo_projector_test.pine`.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

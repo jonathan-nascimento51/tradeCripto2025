@@ -115,8 +115,16 @@ See `tests/fib_confluence_engine_test.pine` for a minimal runnable script with t
 
 ### `libraries/fibo_projector.pine`
 Computes Fibonacci projection levels from a pivot pair and highlights an adaptive
-*Golden Zone* sized using ATR. The `Projector` type stores levels and offers
-`computeLevels()` and `draw()` helpers.
+*Golden Zone*. The `Projector` type stores levels and offers
+`computeLevels()` and `draw()` helpers. `computeLevels()` now accepts two
+additional parameters:
+
+- `useAdaptiveGZ` – when `true`, the golden zone is centered on the 50% level and
+  sized using `kFactor * ATR`.
+- `kFactor` – multiplier for ATR in the adaptive calculation.
+
+When `useAdaptiveGZ` is `false`, the classic 1.618 projection zone sized by
+`atrMult` remains available.
 
 ### `libraries/fib_bucketing_lib.pine`
 Groups Fibonacci levels into price buckets by rounding to the symbol's minimum tick using a proximity threshold.
