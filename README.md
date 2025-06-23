@@ -72,9 +72,9 @@ Stores potential pivot points in a ring buffer until enough bars have passed to 
 ```pinescript
 import "./libraries/pivot_ring_buffer_lib.pine" as prb
 
-prb.setCapacity(20)
-[float ph, float pl] = prb.processCandidate(high, low, 3, 3)
-// ph and pl hold a value only after `rightBars` bars have elapsed
+prb.RingBuffer rb = prb.newRingBuffer(20)
+[float ph, float pl] = prb.processCandidate(rb, high, low, 3, 3)
+// `ph` and `pl` hold values only after `rightBars` bars have elapsed
 ```
 
 ### `libraries/sr_zone_utils.pine`
@@ -119,7 +119,7 @@ Computes Fibonacci projection levels from a pivot pair and highlights an adaptiv
 
 ## Using the Libraries
 
-1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it with the exact name specified in the `library()` call (e.g. `Codex/PivotUtils/2`).
+1. In TradingView, create a new **Library** script and paste the contents of one of the `*_utils.pine` files. Save it using the same name shown in the `library()` declaration (e.g. `PivotUtils` with version `2`).
 2. In your indicator or strategy, import the library with the `import` statement:
 
    ```pinescript

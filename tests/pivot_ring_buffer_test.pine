@@ -6,8 +6,9 @@ leftBars  = input.int(3, 'Left Bars')
 rightBars = input.int(3, 'Right Bars')
 capacity  = input.int(20, 'Buffer Capacity')
 
-prb.setCapacity(capacity)
-[float ph, float pl] = prb.processCandidate(high, low, leftBars, rightBars)
+prb.RingBuffer rb = prb.newRingBuffer(capacity)
+prb.setCapacity(rb, capacity)
+[float ph, float pl] = prb.processCandidate(rb, high, low, leftBars, rightBars)
 
 plot(close)
 // Expected output: green and red triangles appear when pivots confirm.

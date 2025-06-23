@@ -11,25 +11,28 @@ export type PivotCandidate
     int   barIdx
     bool  isHigh
 
-var PivotCandidate[] _buffer = array.new<PivotCandidate>()
-var int _capacity = 20
-var st.Styles _styles = st.getStyles()
+export type RingBuffer
+    PivotCandidate[] buffer
+    int              capacity
+
+export newRingBuffer(int cap) =>
+    RingBuffer.new(array.new<PivotCandidate>(), math.max(1, cap))
 
 // -----------------------------------------------------------------------------
 // setCapacity
 // Allows adjusting the maximum number of stored candidates
 // -----------------------------------------------------------------------------
-export setCapacity(int cap) =>
-    _capacity := math.max(1, cap)
-    while array.size(_buffer) > _capacity
-        array.shift(_buffer)
+export setCapacity(RingBuffer self, int cap) =>
+    self.capacity := math.max(1, cap)
+    while array.size(self.buffer) > self.capacity
+        array.shift(self.buffer)
 
 // -----------------------------------------------------------------------------
 // clearBuffer
 // Removes all stored candidates
 // -----------------------------------------------------------------------------
-export clearBuffer() =>
-    array.clear(_buffer)
+export clearBuffer(RingBuffer self) =>
+    array.clear(self.buffer)
 
 // -----------------------------------------------------------------------------
 // processCandidate
@@ -37,26 +40,27 @@ export clearBuffer() =>
 // After rightBars have passed, validates each candidate and plots markers.
 // Returns the prices of confirmed pivot high and low (na when none).
 // -----------------------------------------------------------------------------
-export processCandidate(float highSrc, float lowSrc, int leftBars, int rightBars) =>
+export processCandidate(RingBuffer self, float highSrc, float lowSrc, int leftBars, int rightBars) =>
     float resHigh = na
     float resLow  = na
+    st.Styles styles = st.getStyles()
 
     // Detect new pivot candidates immediately when the left side condition holds
     float hCand = ta.pivothigh(highSrc, leftBars, 0)
     if not na(hCand)
-        array.push(_buffer, PivotCandidate.new(hCand, bar_index, true))
+        array.push(self.buffer, PivotCandidate.new(hCand, bar_index, true))
 
     float lCand = ta.pivotlow(lowSrc, leftBars, 0)
     if not na(lCand)
-        array.push(_buffer, PivotCandidate.new(lCand, bar_index, false))
+        array.push(self.buffer, PivotCandidate.new(lCand, bar_index, false))
 
     // Enforce ring buffer capacity
-    while array.size(_buffer) > _capacity
-        array.shift(_buffer)
+    while array.size(self.buffer) > self.capacity
+        array.shift(self.buffer)
 
     int i = 0
-    while i < array.size(_buffer)
-        PivotCandidate cand = array.get(_buffer, i)
+    while i < array.size(self.buffer)
+        PivotCandidate cand = array.get(self.buffer, i)
         int age = bar_index - cand.barIdx
         if age >= rightBars
             if age == rightBars
@@ -66,14 +70,16 @@ export processCandidate(float highSrc, float lowSrc, int leftBars, int rightBars
                     if cand.isHigh
                         resHigh := cand.price
                         plotshape(cand.price, title="Pivot High", style=shape.triangledown,
-                                  location=location.absolute, color=_styles.fib_ext_dn_col,
+                                  
+                                  location=location.absolute, color=styles.fib_ext_dn_col,
                                   offset=-rightBars, size=size.tiny)
                     else
                         resLow := cand.price
                         plotshape(cand.price, title="Pivot Low", style=shape.triangleup,
-                                  location=location.absolute, color=_styles.fib_ext_up_col,
+                                  
+                                  location=location.absolute, color=styles.fib_ext_up_col,
                                   offset=-rightBars, size=size.tiny)
-            array.remove(_buffer, i)
+            array.remove(self.buffer, i)
         else
             i += 1
 

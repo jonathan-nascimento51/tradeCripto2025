@@ -1,44 +1,30 @@
 //@version=6
 indicator("Engine Core – C-02 Confluence Bucketing", overlay = true)
 
-// -----------------------------------------------------------------------------
-// f_bucketMap
-// Groups Fibonacci levels into price buckets and counts how many levels fall in
-// each bucket. Complexity: O(n).
-// -----------------------------------------------------------------------------
-export f_bucketMap(float[] levels, float proximity) =>
-    map<float,int> result = map.new<float,int>()
-    if array.size(levels) == 0 or proximity <= 0
-        result
-    else
-        for i = 0 to array.size(levels) - 1
-            float level = array.get(levels, i)
-            if na(level)
-                continue
-            float bucketID = math.floor(level / proximity)
-            float bucketPrice = bucketID * proximity
-            // Align bucket price to the symbol's minimum tick
-            bucketPrice := math.round(bucketPrice / syminfo.mintick) * syminfo.mintick
-            int count = map.contains(result, bucketPrice) ? map.get(result, bucketPrice) + 1 : 1
-            map.put(result, bucketPrice, count)
-        result
+// Import the bucketing helper and style library for unified visuals
+import "../libraries/bucketing_lib.pine" as buck
+import "../libraries/style_lib.pine" as st
+
+st.Styles styles = st.getStyles()
 
 // -----------------------------------------------------------------------------
 // Test / Validation (only runs on the last bar)
+// -----------------------------------------------------------------------------
+// Demonstrates usage of buck.bucketMap by grouping sample levels.
 // -----------------------------------------------------------------------------
 if barstate.islast
     // Example Fibonacci levels (simulated for validation)
     float[] fiboLevels = array.from(close + 10.0, close + 10.5, close + 10.7,
                                     close - 5.3, close - 5.1, close - 4.9)
     float proximity = ta.atr(14) * 0.25
-    map<float,int> buckets = f_bucketMap(fiboLevels, proximity)
+    map<float,int> buckets = buck.bucketMap(fiboLevels, proximity)
 
-    // Plot labels for buckets with force >= 2
-    for idx = 0 to map.size(buckets) - 1
-        float price = map.key(buckets, idx)
-        int strength = map.get(buckets, price)
+    // Plot labels for buckets with count >= 2
+    for key in buckets.keys()
+        int strength = buckets.get(key)
         if strength >= 2
-            label.new(bar_index, price, str.tostring(strength),
-                      style = label.style_label_up,
-                      color = color.yellow,
-                      textcolor = color.black)
+            label.new(bar_index, key, str.tostring(strength),
+                      style=label.style_label_up,
+                      color=color.yellow,
+                      textcolor=styles.label_text_color)
+// Expected output: yellow labels at bucket prices with at least two levels.
