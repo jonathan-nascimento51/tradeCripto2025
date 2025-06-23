@@ -7,7 +7,7 @@ import "../libraries/pivot_utils.pine" as pv
 length = input.int(5)
 float ph = pv.pivotHigh(high, length)
 float pl = pv.pivotLow(low, length)
-plotshape(not na(ph), location=location.absolute, style=shape.triangledown, color=color.red, title='PH')
-plotshape(not na(pl), location=location.absolute, style=shape.triangleup, color=color.green, title='PL')
+plotShape(não na(ph), location=location.absolute, style=shape.triangledown, cor=cor.vermelho, título='PH', deslocamento=-comprimento) 
+plotshape(não na(pl), location=location.absolute, style=shape.triangleup, color=color.green, title='PL', offset=-length)
 
 // Expected output: triangle markers appear on new pivot highs and lows.
