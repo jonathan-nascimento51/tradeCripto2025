@@ -285,6 +285,7 @@ Responsabilidades
 Rodar backtests automáticos nos scripts combined_indicators.pine e support_resistance_logistic_regression_example.pine.
 
 Calcular métricas‑chave: Win‑rate, Profit‑factor, Max DD, Sharpe, Latência.
+Agrupar a curva de patrimônio de todas as janelas WFO e gerar intervalos de confiança via simulações de Monte Carlo.
 
 Comparar versus baseline salvo em benchmarks/backtests.json.
 
@@ -296,11 +297,11 @@ TradingView CLI / Pinescript Tester API
 
 Pandas para CSV de trades
 
-Prompt‑template
+Outputs
 
-Execute backtest no script abaixo nos últimos 180 dias BTCUSDT 1h:
-{{script_code}}
-Compare métricas com baseline (json).
+- `wfo_report.json` – curva de patrimônio consolidada das janelas WFO.
+- `monte_carlo_stats.json` – estatísticas com intervalos de confiança das simulações.
+
 Informe regressões >2 %.
 
 Lógica de falha

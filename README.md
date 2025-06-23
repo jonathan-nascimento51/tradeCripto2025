@@ -220,6 +220,23 @@ The `tools/qa_backtest.py` script performs walk-forward optimization using Tradi
 python tools/qa_backtest.py combined_indicators.pine data/BTCUSD_1H.csv --grid len=5,10 step=1,2 --insample 500 --outsample 100 --simulate
 ```
 Results are saved in `benchmarks/advanced_backtests.json` and include 95% confidence intervals.
+
+### Configuring WFO Windows
+
+Use `--insample` and `--outsample` to define the size of each walk‑forward window in bars. A longer in‑sample window generally produces more stable parameters while a smaller out‑of‑sample window offers more test cycles.
+
+```bash
+python tools/qa_backtest.py combined_indicators.pine data/BTCUSD_1H.csv \
+  --grid len=20,50 step=1,2 \
+  --insample 720 --outsample 240 \
+  --simulate
+```
+
+The aggregated equity curve for all segments is written to `wfo_report.json`.
+
+### Running Monte Carlo
+
+After the walk‑forward run finishes, the script automatically performs Monte Carlo simulations on the generated trade list. The resulting statistics and confidence intervals are stored in `monte_carlo_stats.json` alongside the main metrics file.
 ## Contribution Guidelines
 
 - Every commit message must begin with `agent::<nome>` as described in `AGENTS.md`.
