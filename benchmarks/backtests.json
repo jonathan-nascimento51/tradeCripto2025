@@ -6,7 +6,7 @@
     "sharpe": 1.2,
     "latency_ms": 150
   },
-  "SupportandResistanceLogisticRegression.pine": {
+  "support_resistance_logistic_regression_example.pine": {
     "win_rate": 0.52,
     "profit_factor": 1.35,
     "max_drawdown": 14.5,

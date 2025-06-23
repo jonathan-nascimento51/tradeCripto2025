@@ -4,9 +4,9 @@ This directory contains minimal Pine Script examples that showcase how to integr
 
 ## Purpose of Each Example
 
-- **`autoFib-extension.pine`** – Demonstrates a basic Fibonacci extension tool without external libraries. It provides a starting point for converting standalone logic into reusable library functions.
+- **`auto_fib_extension_example.pine`** – Demonstrates a basic Fibonacci extension tool without external libraries. It provides a starting point for converting standalone logic into reusable library functions.
 - **`confluence_example.pine`** – Illustrates how to import `confluence_lib.pine` and `style_lib.pine` to calculate overlap between simple support/resistance levels and Fibonacci ranges. It highlights passing a `ConfluenceInput` object to `calculateConfluence()` and plotting the resulting score.
-- **`SupportandResistanceLogisticRegression.pine`** – Shows a more complete integration of multiple libraries (`logistic_model_lib`, `sr_zone_utils`, `pivot_utils`, `sr_manager_lib` and `style_lib`). It manages zones, trains a logistic model on‑the‑fly and applies unified styles.
+- **`support_resistance_logistic_regression_example.pine`** – Shows a more complete integration of multiple libraries (`logistic_model_lib`, `sr_zone_utils`, `pivot_utils`, `sr_manager_lib` and `style_lib`). It manages zones, trains a logistic model on‑the‑fly and applies unified styles.
 
 ## Expected Chart Behaviour
 

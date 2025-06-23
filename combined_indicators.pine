@@ -7,7 +7,7 @@
 //  ▸ Adiciona tooltips contextuais para zonas validadas e de confluência.
 //  ▸ By: RefinadorVisualZonasPine
 //  ▸ NOTE: This script also incorporates the logistic regression support/resistance
-//          logic from `SupportandResistanceLogisticRegression.pine`.
+//          logic from `support_resistance_logistic_regression_example.pine`.
 // =============================================================================
 import "./libraries/logistic_model_lib.pine" as lm
 import "./libraries/sr_zone_utils.pine" as sru

@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - Fixed sorting logic in `clusterLevels()` to ensure compatibility with Pine Script's
   supported `array.sort` signature.
 - Added **FiboProjector** library with ATR-based Golden Zone and a new test script.
-- Added baseline metrics for `combined_indicators.pine` and `SupportandResistanceLogisticRegression.pine` in `benchmarks/backtests.json`.
+- Added baseline metrics for `combined_indicators.pine` and `support_resistance_logistic_regression_example.pine` in `benchmarks/backtests.json`.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

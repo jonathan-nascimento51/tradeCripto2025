@@ -6,7 +6,7 @@ Gerado em 20 Jun 2025
 
 Este repositório contém uma suíte de indicadores e bibliotecas em Pine Script v6 voltadas a:
 
-Auto‑detecção de extensões Fibonacci (autoFib-extension.pine)
+Auto‑detecção de extensões Fibonacci (auto_fib_extension_example.pine)
 
 Confluência entre Suporte/Resistência, Fibonacci e Volatilidade (combined_indicators.pine, confluence_lib.pine)
 
@@ -16,7 +16,7 @@ Gestão de zonas S/R (sr_zone_utils.pine, pivot_utils.pine)
 
 Temas e estilo unificado (style_lib.pine)
 
-Indicador S/R baseado em regressão (SupportandResistanceLogisticRegression.pine)
+Indicador S/R baseado em regressão (support_resistance_logistic_regression_example.pine)
 
 A orquestração dos fluxos de análise → geração de prompts → implementação → teste → documentação será delegada a um conjunto de agentes especializados que conversam através de prompts clamados pelo Codex (OpenAI) e outros LLMs.
 
@@ -52,7 +52,7 @@ Núcleo de Lógica
 
 Agente Responsável primário
 
-autoFib-extension.pine
+auto_fib_extension_example.pine
 
 Fibonacci Extensions
 
@@ -94,7 +94,7 @@ Paleta & Estilos
 
 visual_refiner
 
-SupportandResistanceLogisticRegression.pine
+support_resistance_logistic_regression_example.pine
 
 Indicador S/R final
 
@@ -282,7 +282,7 @@ Persona«Engenheiro(a) de QA Quantitativa.»
 
 Responsabilidades
 
-Rodar backtests automáticos nos scripts combined_indicators.pine e SupportandResistanceLogisticRegression.pine.
+Rodar backtests automáticos nos scripts combined_indicators.pine e support_resistance_logistic_regression_example.pine.
 
 Calcular métricas‑chave: Win‑rate, Profit‑factor, Max DD, Sharpe, Latência.
 
@@ -423,7 +423,7 @@ doc_writer.update(version="v2.3.0")
 
 train_logistic.start(dataset="data/BTC_1H.csv")
 impl_codex.inject_weights(lib="logistic_model_lib.pine")
-qa_backtest.run(script="SupportandResistanceLogisticRegression.pine")
+qa_backtest.run(script="support_resistance_logistic_regression_example.pine")
 doc_writer.update(version="v2.4.0-model")
 
 6. Glossário Rápido
