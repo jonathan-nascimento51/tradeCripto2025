@@ -26,14 +26,14 @@ if not na(ph)
     line up2 = line.new(bar_index - length, ph - ta.atr(14) * 0.1, bar_index, ph - ta.atr(14) * 0.1, extend=extend.right, color=styles.sr_color_res)
     linefill lf = linefill.new(up1, up2)
     label lb = label.new(bar_index, ph, 'R')
-    sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, up1, up2, lf, lb, ph, 0.5, 0,0,0,false), 5)
+    sru.pushZone(zones, sru.SR_Zone.new(bar_index, up1, up2, lf, lb, ph, 0.5, 0,0,0,false), 5)
 
 if not na(pl)
     line lo1 = line.new(bar_index - length, pl, bar_index, pl, extend=extend.right, color=styles.sr_color_sup)
     line lo2 = line.new(bar_index - length, pl + ta.atr(14) * 0.1, bar_index, pl + ta.atr(14) * 0.1, extend=extend.right, color=styles.sr_color_sup)
     linefill lf2 = linefill.new(lo1, lo2)
     label lb2 = label.new(bar_index, pl, 'S')
-    sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, lo1, lo2, lf2, lb2, pl, 0.5, 0,0,0,true), 5)
+    sru.pushZone(zones, sru.SR_Zone.new(bar_index, lo1, lo2, lf2, lb2, pl, 0.5, 0,0,0,true), 5)
 
 // ---- Draw a basic Fibonacci extension from the first bar ----
 if barstate.isfirst

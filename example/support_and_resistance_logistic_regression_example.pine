@@ -139,14 +139,14 @@ if srEnabled
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
 
             if isRetest
-                bool validated = sru.f_handleRetest(zone, retestCount, retestProbWeight, borderColorValid, srColorValid)
+                bool validated = sru.handleRetest(zone, retestCount, retestProbWeight, borderColorValid, srColorValid)
                 if validated
                     f_pushSample(zone.x1, zone.x2, zone.x3, 1.0)
                     trained := false
 
             bool isDominant = math.abs(close - open) > atr or volume > volMA
             if isBroken and isDominant
-                bool earlyBreak = sru.f_markBroken(zone, retestCount, borderColorBroken, srColorBroken)
+                bool earlyBreak = sru.markBroken(zone, retestCount, borderColorBroken, srColorBroken)
                 if earlyBreak
                     f_pushSample(zone.x1, zone.x2, zone.x3, 0.0)
                     trained := false
@@ -155,7 +155,7 @@ else
     // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
     isPivotHighOrigin := false
     isPivotLowOrigin := false
-    sru.f_clearZones(sr_zones)
+    sru.clearZones(sr_zones)
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô

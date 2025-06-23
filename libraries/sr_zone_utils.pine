@@ -18,10 +18,10 @@ export type SR_Zone
     string status = "Active"
 
 // -----------------------------------------------------------------------------
-// f_pushZone
+// pushZone
 // Adds a new zone to the array and enforces a maximum size.
 // -----------------------------------------------------------------------------
-export f_pushZone(SR_Zone[] zones, SR_Zone zone, int maxZones) =>
+export pushZone(SR_Zone[] zones, SR_Zone zone, int maxZones) =>
     array.push(zones, zone)
     if array.size(zones) > maxZones
         SR_Zone oldZone = array.shift(zones)
@@ -31,10 +31,10 @@ export f_pushZone(SR_Zone[] zones, SR_Zone zone, int maxZones) =>
         label.delete(oldZone.lbl)
 
 // -----------------------------------------------------------------------------
-// f_clearZones
+// clearZones
 // Deletes all drawing objects from a zone array and clears it.
 // -----------------------------------------------------------------------------
-export f_clearZones(SR_Zone[] zones) =>
+export clearZones(SR_Zone[] zones) =>
     for z in zones
         line.delete(z.line_upper)
         line.delete(z.line_lower)
@@ -43,11 +43,11 @@ export f_clearZones(SR_Zone[] zones) =>
     array.clear(zones)
 
 // -----------------------------------------------------------------------------
-// f_handleRetest
+// handleRetest
 // Updates retest counters and styling when a zone is touched.
 // Returns true when the zone becomes validated.
 // -----------------------------------------------------------------------------
-export f_handleRetest(SR_Zone zone, int retestCount, float probStep, color borderColorValid, color srColorValid) =>
+export handleRetest(SR_Zone zone, int retestCount, float probStep, color borderColorValid, color srColorValid) =>
     zone.retests += 1
     zone.lbl.set_text(str.tostring(zone.retests) + 'x')
     zone.lbl.set_x(bar_index + 1)
@@ -73,11 +73,11 @@ export f_handleRetest(SR_Zone zone, int retestCount, float probStep, color borde
     validated
 
 // -----------------------------------------------------------------------------
-// f_markBroken
+// markBroken
 // Marks a zone as broken. Returns true when the break happened before
 // the required retest count was reached.
 // -----------------------------------------------------------------------------
-export f_markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color srColorBroken) =>
+export markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color srColorBroken) =>
     zone.status := "Broken"
     zone.line_upper.set_color(borderColorBroken)
     zone.line_lower.set_color(borderColorBroken)

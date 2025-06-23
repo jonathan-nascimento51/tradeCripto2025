@@ -9,14 +9,14 @@ if barstate.isfirst
     line l2 = line.new(bar_index, close - 10, bar_index + 10, close - 10, extend=extend.right)
     linefill lf = linefill.new(l1, l2)
     label lb = label.new(bar_index, close)
-    sru.f_pushZone(zones, sru.SR_Zone.new(bar_index, l1, l2, lf, lb, close, 0.5, 0,0,0,true), 5)
+    sru.pushZone(zones, sru.SR_Zone.new(bar_index, l1, l2, lf, lb, close, 0.5, 0,0,0,true), 5)
 
 for z in zones
     bool retest = close < z.level and low < z.level
     if retest
-        sru.f_handleRetest(z, 1, 0.1, color.blue, color.green)
+        sru.handleRetest(z, 1, 0.1, color.blue, color.green)
     bool broken = close < z.level - 1
     if broken
-        sru.f_markBroken(z, 1, color.red, color.red)
+        sru.markBroken(z, 1, color.red, color.red)
 
 // Expected output: the zone fills blue on retests and turns red when broken.
