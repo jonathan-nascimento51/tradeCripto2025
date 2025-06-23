@@ -149,6 +149,20 @@ in the `library()` declaration (e.g. `PivotUtils` with version `2`).
 
 Repeat the process for the other libraries as needed. Once imported you can call their exported functions directly in your scripts.
 
+### Importing Libraries on TradingView
+
+When publishing a script that depends on a library, reference the public
+version hosted by the author. Use the following syntax:
+
+```pinescript
+import username/libraryName/1 as lib
+```
+
+Replace `username` with the TradingView profile name, `libraryName` with the
+library's published title and `1` with the desired version. Note that relative
+paths like `"./libraries/pivot_utils.pine"` only work when running the files
+inside this repository.
+
 Both `combined_indicators.pine` and `support_resistance_logistic_regression_example.pine` keep the logistic model weights fixed unless the **Use Trained Weights** input is enabled. The coefficients may be entered manually or trained on‑the‑fly when this option is turned on.
 
 ## Ajustes Visuais e Customização
