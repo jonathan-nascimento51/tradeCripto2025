@@ -6,5 +6,5 @@ library("MapUtilsLib", true)
 //@param k   float
 //@param def int
 //@returns   int
-export getOrDefault(map<float,int> m, float k, int def) =>
+export get_if_contains(map<float,int> m, float k, int def) =>
     m.contains(k) ? m.get(k) : def
