@@ -11,10 +11,11 @@ st.Styles styles = st.getStyles()
 var fce.Swing[] swings = array.new<fce.Swing>()
 var box[] boxes = array.new<box>()
 
-[float[] levels, float[] weights] = fce.getFibLevels(swings)
-fce.Cluster[] clusters = fce.clusterLevels(levels, weights, clusterThresh * ta.atr(14))
-left = bar_index - 30
-fce.drawClusters(clusters, boxes, left, bar_index, styles.fib_base_color)
+if barstate.islast
+    [float[] levels, float[] weights] = fce.getFibLevels(swings)
+    fce.Cluster[] clusters = fce.clusterLevels(levels, weights, clusterThresh * ta.atr(14))
+    left = bar_index - 30
+    fce.drawClusters(clusters, boxes, left, bar_index, styles.fib_base_color)
 
 plot(close)
 // Expected output: gradient boxes highlighting clustered Fibonacci levels.
