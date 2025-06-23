@@ -215,7 +215,7 @@ Analise o(s) arquivo(s) abaixo e produza:
 {{code_bundle}}
 === FIM ===
 
-3.2 Prompt‑Builder Agent (prompt_builder@v1.0)
+3.2 Prompt‑Builder Agent (prompt_builder@v2.0)
 
 Persona«Arquiteto(a) de prompts para IA, especialista em Engenharia de Prompt programática.»
 
@@ -238,6 +238,32 @@ Gere um prompt para Codex que:
 • Resolva os issues listados
 • Mantenha estilo funcional
 • Inclua critério de aceitação em 3 bullets
+
+Ao receber uma solicitação de backtest, o Prompt‑Builder deve emitir a seguinte ação em XML para instruir o `qa_backtest`:
+
+```xml
+<action type="backtest_and_validate">
+    <strategy_path>generated_strategy.pine</strategy_path>
+    <data_range start="YYYY-MM-DD" end="YYYY-MM-DD"/>
+    <validation_method>
+        <wfo enabled="true">
+            <in_sample_bars>500</in_sample_bars>
+            <out_of_sample_bars>100</out_of_sample_bars>
+        </wfo>
+        <monte_carlo enabled="true">
+            <num_simulations>1000</num_simulations>
+            <randomization_techniques>
+                <shuffle_trades/>
+                <resample_trades/>
+                <skip_trades percentage="0.05"/>
+            </randomization_techniques>
+        </monte_carlo>
+    </validation_method>
+    <objective_function>SharpeRatio</objective_function>
+</action>
+```
+
+Essa ação garante que o backtest sempre utilize otimização walk‑forward e análises de Monte Carlo.
 
 3.3 Codex Implementation Agent (impl_codex@v1.0)
 

@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file.
   supported `array.sort` signature.
 - Added **FiboProjector** library with ATR-based Golden Zone and a new test script.
 - Added baseline metrics for `combined_indicators.pine` and `support_resistance_logistic_regression_example.pine` in `benchmarks/backtests.json`.
+- Bumped Prompt-Builder to **v2.0** with a new `<backtest_and_validate>` action
+  that instructs `qa_backtest` to run walk-forward optimization and Monte Carlo
+  analyses whenever backtesting is requested.
 
 ## [v2.0.0] - 2025-06-20
 ### Added

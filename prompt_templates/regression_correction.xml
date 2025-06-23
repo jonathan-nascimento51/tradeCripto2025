@@ -19,4 +19,26 @@
   <Comando_Técnico_Detalhado>
     Implemente a correção conforme o seu plano aprovado. O seu Pull Request DEVE referenciar o 'trace_id' do incidente original.
   </Comando_Técnico_Detalhado>
+  <Acao_Backtest>
+    Após criar o Pull Request, envie ao agente de QA o bloco a seguir para disparar nova validação:
+    <action type="backtest_and_validate">
+        <strategy_path>generated_strategy.pine</strategy_path>
+        <data_range start="YYYY-MM-DD" end="YYYY-MM-DD"/>
+        <validation_method>
+            <wfo enabled="true">
+                <in_sample_bars>500</in_sample_bars>
+                <out_of_sample_bars>100</out_of_sample_bars>
+            </wfo>
+            <monte_carlo enabled="true">
+                <num_simulations>1000</num_simulations>
+                <randomization_techniques>
+                    <shuffle_trades/>
+                    <resample_trades/>
+                    <skip_trades percentage="0.05"/>
+                </randomization_techniques>
+            </monte_carlo>
+        </validation_method>
+        <objective_function>SharpeRatio</objective_function>
+    </action>
+  </Acao_Backtest>
 </Prompt>
