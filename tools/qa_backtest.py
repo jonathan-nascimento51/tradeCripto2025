@@ -108,8 +108,8 @@ def walk_forward(
     start = 0
     segments: List[pd.DataFrame] = []
     while start + insample + outsample <= len(data):
-        insample_slice = data.iloc[start : start + insample]
-        oos_slice = data.iloc[start + insample : start + insample + outsample]
+        insample_slice = data.iloc[start:start + insample]
+        oos_slice = data.iloc[start + insample:start + insample + outsample]
         params = optimize_parameters(
             script_path,
             param_grid,

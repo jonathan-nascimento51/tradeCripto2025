@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+
 def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -> str:
     """Return `window` lines after the first match of `function_name`.
     file_path: path to the source file.
@@ -17,6 +18,7 @@ def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -
         if function_name in line:
             return "".join(lines[idx:idx + window])
     return ""
+
 
 def extract_text_section(file_path: str, start_keyword: str, end_keyword: str) -> str:
     """Return text located between `start_keyword` and `end_keyword`.
@@ -42,6 +44,7 @@ def extract_text_section(file_path: str, start_keyword: str, end_keyword: str) -
     if start != -1 and end != -1:
         return "".join(lines[start:end])
     return ""
+
 
 def get_file_structure(directory: str) -> List[str]:
     """Return sorted relative file paths found under `directory`.
