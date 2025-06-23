@@ -218,6 +218,27 @@ git push
 ```
 Every commit should include the prefix `agent::<nome>` in the message and should not be amended to keep history intact.
 
+## Python Requirements
+The Python helper scripts and example tests depend on a few external packages. A
+`requirements.txt` file lists them for convenience:
+
+```
+pandas
+numpy
+requests
+flake8
+```
+
+Install everything with:
+
+```bash
+pip install -r requirements.txt
+```
+
+With the dependencies installed you can execute tools like
+`tools/qa_backtest.py` or run the standalone test files under `tests/` without
+import errors.
+
 ## Advanced Backtesting
 The `tools/qa_backtest.py` script performs walk-forward optimization using TradingView's API and Monte Carlo simulations. Example usage:
 ```bash
