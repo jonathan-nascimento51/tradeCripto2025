@@ -25,4 +25,6 @@ export createZone(sru.SR_Zone[] zones, float level, bool isSupport, color fillCo
             line l_l = line.new(bar_index - len, lower, bar_index, lower, color=borderColor, extend=extend.right, style=line.style_solid, width=1)
             linefill lf = linefill.new(l_u, l_l, color=fillColor)
             label newLbl = label.new(bar_index, level, "", style=label.style_none)
-            sru.pushZone(zones, sru.SR_Zone.new(bar_index, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), maxZones)
+            // Store the pivot bar index so zone.bar_index aligns with the original pivot
+            int pivotIndex = bar_index - len
+            sru.pushZone(zones, sru.SR_Zone.new(pivotIndex, l_u, l_l, lf, newLbl, level, prob, x1, x2, x3, isSupport), maxZones)
