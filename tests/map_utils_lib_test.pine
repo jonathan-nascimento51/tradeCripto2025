@@ -1,6 +1,6 @@
 //@version=6
 indicator('Map Utils Lib Test', overlay=true)
-import "../libraries/map_utils_lib.pine" as map
+import jonathanmoletta17/MapUtilsLib/1 as map
 
 var map<float,int> demo = map.new<float,int>()
 if barstate.isfirst
