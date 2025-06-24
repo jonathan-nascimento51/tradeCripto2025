@@ -1,8 +1,8 @@
 //@version=6
 library("FibConfluenceEngine", true)
 
-import "./pivot_utils.pine" as pv
-import "./fib_extension_lib.pine" as fe
+import jonathanmoletta17/PivotUtils/4 as pv
+import jonathanmoletta17/FibExtensionLib/3 as fe
 
 // -----------------------------------------------------------------------------
 //  Swing structure to store pivot pairs
@@ -92,35 +92,37 @@ export getFibLevels(Swing[] swings) =>
 export clusterLevels(float[] levels, float[] weights, float threshold) =>
     Cluster[] clusters = array.new<Cluster>()
     int n = array.size(levels)
+
     if n == 0
-        clusters
+        clusters            // nada a fazer
     else
-        int[] idxs = array.new<int>()
-        for i = 0 to n - 1
-            array.push(idxs, i)
-        // Sort indexes based on their corresponding level values.
-        // Using `array.sort` with a mapping function is supported in
-        // Pine Script v6, while custom comparator functions are not.
-        array.sort(idxs, order.ascending, (i) => array.get(levels, i))
-        float curLow  = array.get(levels, array.get(idxs, 0))
-        float curHigh = curLow
+        // ❶ devolve índices ordenados pelo preço (ascendente por padrão)
+        int[] idxs = array.sort_indices(levels)
+
+        // ❷ percorre esses índices formando os clusters
+        float curLow   = array.get(levels, array.get(idxs, 0))
+        float curHigh  = curLow
         float curScore = array.get(weights, array.get(idxs, 0))
         int   curCount = 1
+
         for k = 1 to n - 1
-            int id = array.get(idxs, k)
+            int   id    = array.get(idxs, k)
             float price = array.get(levels, id)
-            float w = array.get(weights, id)
+            float w     = array.get(weights, id)
+
             if math.abs(price - curHigh) <= threshold
-                curLow  := math.min(curLow, price)
-                curHigh := math.max(curHigh, price)
+                curLow   := math.min(curLow,  price)
+                curHigh  := math.max(curHigh, price)
                 curScore += w
                 curCount += 1
             else
                 array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
-                curLow := price
-                curHigh := price
+                curLow   := price
+                curHigh  := price
                 curScore := w
                 curCount := 1
+
+        // último cluster
         array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
         clusters
 
