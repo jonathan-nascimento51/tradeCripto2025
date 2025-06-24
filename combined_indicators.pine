@@ -203,8 +203,8 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=0)
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=0)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=-lengthInput)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=-lengthInput)
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
@@ -219,16 +219,16 @@ if bar_index >= lengthInput
 
     if isPivotHighOrigin
         lastHigh := ph
-        lastHighIdx := bar_index
+        lastHighIdx := bar_index - lengthInput
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorHighLabel)
-            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
+            fibAnchorHighLabel := label.new(lastHighIdx, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
-        lastLowIdx := bar_index
+        lastLowIdx := bar_index - lengthInput
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorLowLabel)
-            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
+            fibAnchorLowLabel := label.new(lastLowIdx, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabledInput and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     int startIdx = math.min(lastHighIdx, lastLowIdx)
