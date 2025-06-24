@@ -1,6 +1,6 @@
 //@version=6
 indicator('Pivot Ring Buffer Lib Test', overlay=true)
-import "../libraries/pivot_ring_buffer_lib.pine" as prb
+import jonathanmoletta17/PivotRingBuffer/1 as prb
 
 leftBars  = input.int(3, 'Left Bars')
 rightBars = input.int(3, 'Right Bars')
