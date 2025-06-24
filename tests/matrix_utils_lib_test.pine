@@ -1,6 +1,6 @@
 //@version=6
 indicator('Matrix Utils Lib Test', overlay=true)
-import "../libraries/matrix_utils_lib.pine" as mu
+import jonathanmoletta17/MatrixUtilsLib/1 as mu
 
 var matrix<float> m = matrix.new<float>(2, 2, 0)
 if barstate.isfirst

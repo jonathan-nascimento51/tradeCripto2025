@@ -8,5 +8,4 @@ library("MatrixUtilsLib", true)
 //@param def float
 //@returns   float
 export getOrDefault(matrix<float> m, int row, int col, float def) =>
-    (row >= 0 and row < matrix.rows(m) and col >= 0 and col < matrix.columns(m)) ?
-        matrix.get(m, row, col) : def
+    (row >= 0 and row < matrix.rows(m) and col >= 0 and col < matrix.columns(m)) ? matrix.get(m, row, col) : def
