@@ -245,7 +245,7 @@ if fibEnabledInput and not na(lastHigh) and not na(lastLow) and barstate.isconfi
     float p1 = lastHighIdx < lastLowIdx ? lastHigh : lastLow
     float p2 = lastHighIdx < lastLowIdx ? lastLow : lastHigh
     fb.computeLevels(fibProjector, p1, p2, atr, atrMultInput, useAdaptiveGZInput, kFactorInput)
-    fb.draw(fibProjector, endIdx, bar_index, fibBaseColorInput,fibExtUpColInput, color.new(color.yellow, 70), fibWidthInput,labelSizeOptInput, labelOffsetInput)
+    fb.draw(fibProjector, endIdx, bar_index, fibBaseColorInput,fibExtUpColInput, sty.GOLD_ZONE_COLOR, fibWidthInput,labelSizeOptInput, labelOffsetInput)
     if not showGoldenZoneInput and not na(fibProjector.goldBox)
         box.delete(fibProjector.goldBox)
 else if not fibEnabledInput

@@ -19,7 +19,7 @@ if barstate.islast
     fp.draw(proj, bar_index, bar_index + 20,
             styles.fib_base_color,
             styles.fib_ext_up_col,
-            color.new(color.yellow, 70),
+            st.GOLD_ZONE_COLOR,
             styles.fib_width,
             styles.label_size,
             styles.label_offset)

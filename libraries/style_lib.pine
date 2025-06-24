@@ -13,6 +13,9 @@ export const color FIB_EXT_UP_COL  = color.new(color.green, 0)
 export const color FIB_EXT_DN_COL  = color.new(color.red, 0)
 export const int   FIB_WIDTH       = 1
 
+// ---- Golden zone color ----
+export const color GOLD_ZONE_COLOR = color.new(#F9D35B, 30)
+
 // ---- Label and anchor settings ----
 export const string LABEL_SIZE     = "tiny"
 export const int    LABEL_OFFSET   = 2
