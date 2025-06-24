@@ -76,10 +76,10 @@ labelSizeOptInput  = input.string(sty.LABEL_SIZE, "Fib Label Size",
                              options=[size.tiny, size.small, size.normal, size.large, size.huge],
                              group="Style – Fibonacci")
 labelOffsetInput   = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
-showGoldenZoneInput = input.bool(true, "Mostrar Zona Dourada", group="Estilo – Fibonacci") 
-useAdaptiveGZInput = input.bool(false, "Zona Áurea Adaptativa", group="Estilo – Fibonacci") 
-kFactorInput = input.float(0.5, "k Factor", step=0.1, group="Style – Fibonacci") 
-atrMultInput = input.float(1.0, "ATR Mult", step=0.1, group="Style – Fibonacci") 
+showGoldenZoneInput = input.bool(true, "Show Golden Zone", group="Style – Fibonacci")
+useAdaptiveGZInput  = input.bool(false, "Adaptive Golden Zone", group="Style – Fibonacci")
+kFactorInput        = input.float(0.5, "k Factor", step=0.1, group="Style – Fibonacci")
+atrMultInput        = input.float(1.0, "ATR Mult", step=0.1, group="Style – Fibonacci")
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkersInput = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -93,8 +93,8 @@ const int MAX_TRAIN_SAMPLES = 200
 
 var sru.SR_Zone[] sr_zones = array.new<sru.SR_Zone>()
 var fib.FibLevel[] fib_levels = array.new<fib.FibLevel>()
-var box[] confBoxes = array.new_box()
 var fb.Projector fibProjector = fb.newProjector()
+var box[] confBoxes = array.new_box()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
 var float[] trainX3 = array.new<float>()
@@ -225,24 +225,27 @@ if bar_index >= lengthInput
 
     if isPivotHighOrigin
         lastHigh := ph
-        lastHighIdx := bar_index
+        lastHighIdx := bar_index - lengthInput
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorHighLabel)
-            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
+            fibAnchorHighLabel := label.new(lastHighIdx, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
-        lastLowIdx := bar_index
+        lastLowIdx := bar_index - lengthInput
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorLowLabel)
-            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
+            fibAnchorLowLabel := label.new(lastLowIdx, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabledInput and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     int startIdx = math.min(lastHighIdx, lastLowIdx)
-    fib.drawLevels(fib_levels, startIdx, lastHigh, lastLow, fibBaseColorInput, fibExtUpColInput, fibExtDnColInput, fibWidthInput, labelSizeOptInput, labelOffsetInput)
+    int endIdx   = math.max(lastHighIdx, lastLowIdx)
+    fib.drawLevels(fib_levels, startIdx, lastHigh, lastLow,
+                   fibBaseColorInput, fibExtUpColInput, fibExtDnColInput,
+                   fibWidthInput, labelSizeOptInput, labelOffsetInput)
     float p1 = lastHighIdx < lastLowIdx ? lastHigh : lastLow
     float p2 = lastHighIdx < lastLowIdx ? lastLow : lastHigh
     fb.computeLevels(fibProjector, p1, p2, atr, atrMultInput, useAdaptiveGZInput, kFactorInput)
-    fb.draw(fibProjector, startIdx, bar_index, fibBaseColorInput, fibExtUpColInput, color.new(color.yellow, 70), fibWidthInput, labelSizeOptInput, labelOffsetInput)
+    fb.draw(fibProjector, endIdx, bar_index, fibBaseColorInput,fibExtUpColInput, color.new(color.yellow, 70), fibWidthInput,labelSizeOptInput, labelOffsetInput)
     if not showGoldenZoneInput and not na(fibProjector.goldBox)
         box.delete(fibProjector.goldBox)
 else if not fibEnabledInput
