@@ -1,19 +1,20 @@
-//@version=6
+/
+/@version=6
 library("BucketingLib", true)
-import "../libraries/price_precision_lib.pine" as pp
-import "../libraries/map_utils_lib.pine" as map
+import jonathanmoletta17/PricePrecisionLib/1 as pp
+import jonathanmoletta17/MapUtilsLib/1 as map
 
-//@description Groups price levels into buckets rounded to the symbol's tick.
-//@param levels     array<float>
+//@description Groups nearby levels into price buckets
+//@param levels  array<float>
 //@param proximity  simple float (bucket width)
 //@returns          map<float,int>
 export bucketMap(array<float> levels, simple float proximity) =>
-    // Reinitialize on each call to avoid residual values
+    // Create a new map on each invocation to avoid residual values
     map<float,int> buckets = map.new<float,int>()
     if proximity > 0
         for lvl in levels
             if not na(lvl)
-                float raw = math.round(lvl / proximity) * proximity
-                float key = pp.roundToTick(raw)
+                float key = pp.roundToTick(math.round(lvl / proximity) * proximity)
+                int cnt = map.get_if_contains(buckets, key, 0) + 1
                 map.put(buckets, key, cnt)
     buckets

@@ -1,7 +1,7 @@
 //@version=6
 library("FiboProjector", true)
 
-import "./style_lib.pine" as st
+import jonathanmoletta17/StyleLib/9 as sty
 
 // -----------------------------------------------------------------------------
 // Internal helper returning the standard Fibonacci projection ratios.

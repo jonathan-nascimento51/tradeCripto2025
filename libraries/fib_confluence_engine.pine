@@ -94,14 +94,17 @@ export clusterLevels(float[] levels, float[] weights, float threshold) =>
     int n = array.size(levels)
 
     if n == 0
-        clusters            // nothing to do
+        clusters
     else
-        // ❶ devolve índices ordenados pelo preço (ascendente por padrão)
-        int[] idxs = array.sort_indices(levels)
-
-        // ❷ percorre esses índices formando os clusters
-        float curLow   = array.get(levels, array.get(idxs, 0))
-        float curHigh  = curLow
+        int[] idxs = array.new<int>()
+        for i = 0 to n - 1
+            array.push(idxs, i)
+        // Sort indexes based on their corresponding level values.
+        // Using `array.sort` with a mapping function is supported in
+        // Pine Script v6, while custom comparator functions are not.
+        array.sort(idxs, order.ascending, (i) => array.get(levels, i))
+        float curLow  = array.get(levels, array.get(idxs, 0))
+        float curHigh = curLow
         float curScore = array.get(weights, array.get(idxs, 0))
         int   curCount = 1
 

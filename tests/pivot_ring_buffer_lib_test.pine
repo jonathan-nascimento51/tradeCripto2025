@@ -11,4 +11,6 @@ prb.setCapacity(rb, capacity)
 [float ph, float pl] = prb.processCandidate(rb, high, low, leftBars, rightBars)
 
 plot(close)
-// Expected output: green and red triangles appear when pivots confirm.
+plotshape(not na(ph) ? ph : na, style=shape.triangledown, location=location.absolute, color=color.red, size=size.tiny)
+plotshape(not na(pl) ? pl : na, style=shape.triangleup, location=location.absolute, color=color.green, size=size.tiny)
+// Expected output: red and green triangles mark validated pivot highs and lows.
