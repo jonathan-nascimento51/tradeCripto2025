@@ -94,7 +94,7 @@ export clusterLevels(float[] levels, float[] weights, float threshold) =>
     int n = array.size(levels)
 
     if n == 0
-        clusters            // nothing to do
+        clusters            // fallback branch when no levels
     else
         // ❶ devolve índices ordenados pelo preço (ascendente por padrão)
         int[] idxs = array.sort_indices(levels)
