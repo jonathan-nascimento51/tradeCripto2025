@@ -1,75 +1,68 @@
 //@version=6
-// =============================================================================
-//  Confluence Example
-//  Illustrates how to combine basic S/R levels with Fibonacci ranges
-//  using the helper libraries in this repository.
-// =============================================================================
 indicator('Confluence Example', overlay=true)
 
-// ── Imports ──
-import "../libraries/confluence_lib.pine" as conf
-import "../libraries/style_lib.pine" as sty
+import jonathanmoletta17/ConfluenceLib/8 as conf
+import jonathanmoletta17/StyleLib/6 as sty
 
-// ── Inputs ──
 // Load consolidated style settings
 sty.Styles styles = sty.getStyles()
 
 // Example coefficients usually provided via JSON
-coefDistanceInput = input.float(1.0, 'Distance Weight')
-coefSignalInput   = input.float(1.0, 'Signal Strength Weight')
-coefRetestsInput  = input.float(1.0, 'Retests Weight')
-coefTemporalInput = input.float(1.0, 'Temporal Diff Weight')
-weightSchemeInput = input.string('linear', 'Weight Scheme', options=['linear', 'exponential', 'logistic'])
-kDistInput       = input.float(1.0, 'Exp K Dist')
-kTempInput       = input.float(1.0, 'Exp K Temp')
+coefDistance = input.float(1.0, 'Distance Weight')
+coefSignal   = input.float(1.0, 'Signal Strength Weight')
+coefRetests  = input.float(1.0, 'Retests Weight')
+coefTemporal = input.float(1.0, 'Temporal Diff Weight')
+weightScheme = input.string('linear', 'Weight Scheme', options=['linear', 'exponential', 'logistic'])
+kDist       = input.float(1.0, 'Exp K Dist')
+kTemp       = input.float(1.0, 'Exp K Temp')
 
-atrPeriodInput = input.int(14, 'ATR Period')
-float atr = ta.atr(atrPeriodInput)
+atrPeriod = input.int(14, 'ATR Period')
+float atr = ta.atr(atrPeriod)
 
 // Threshold in price percentage for considering overlap
-levelThresholdInput = input.float(0.002, 'Overlap Threshold %', step=0.001)
+levelThreshold = input.float(0.002, 'Overlap Threshold %', step=0.001)
 
-// ── Simple Support/Resistance Detection ──
-pivotLenInput = input.int(10, 'Pivot Length')
-ph = ta.pivothigh(pivotLenInput, pivotLenInput)
-pl = ta.pivotlow(pivotLenInput, pivotLenInput)
+// Simple support and resistance detection using pivots
+pivotLen = input.int(10, 'Pivot Length')
+ph = ta.pivothigh(pivotLen, pivotLen)
+pl = ta.pivotlow(pivotLen, pivotLen)
 var float[] srLevels = array.new<float>()
 var int[]   srTimes  = array.new<int>()
 if not na(ph)
-    array.push(srLevels, high[pivotLenInput])
-    array.push(srTimes, bar_index[pivotLenInput])
+    array.push(srLevels, high[pivotLen])
+    array.push(srTimes, bar_index[pivotLen])
 if not na(pl)
-    array.push(srLevels, low[pivotLenInput])
-    array.push(srTimes, bar_index[pivotLenInput])
+    array.push(srLevels, low[pivotLen])
+    array.push(srTimes, bar_index[pivotLen])
 
-// ── Fibonacci Range ──
-fibPeriodInput = input.int(50, 'Fib Period')
-fibRatioAInput  = input.float(0.382, 'Fib Ratio A')
-fibRatioBInput  = input.float(0.618, 'Fib Ratio B')
-maxTemporalDiffInput = input.int(50, 'Max Temporal Diff')
+// Fibonacci levels from the last defined range
+fibPeriod = input.int(50, 'Fib Period')
+fibRatioA  = input.float(0.382, 'Fib Ratio A')
+fibRatioB  = input.float(0.618, 'Fib Ratio B')
+maxTemporalDiff = input.int(50, 'Max Temporal Diff')
 // Track the last highest/lowest values so we only rebuild levels when needed
 var float hh = na
 var float ll = na
 var float[] fibLevels = array.new<float>()
 var int[]   fibTimes  = array.new<int>()
 
-float newHh = ta.highest(high, fibPeriodInput)
-float newLl = ta.lowest(low, fibPeriodInput)
+float newHh = ta.highest(high, fibPeriod)
+float newLl = ta.lowest(low, fibPeriod)
 
-// ── Recreate Fibonacci Arrays When the Range Changes ──
+// Recreate the Fibonacci arrays only when the range changes
 if barstate.isfirst or newHh != hh or newLl != ll
     hh := newHh
     ll := newLl
     array.clear(fibLevels)
     array.clear(fibTimes)
     array.push(fibLevels, ll)
-    array.push(fibLevels, ll + (hh - ll) * fibRatioAInput)
-    array.push(fibLevels, ll + (hh - ll) * fibRatioBInput)
+    array.push(fibLevels, ll + (hh - ll) * fibRatioA)
+    array.push(fibLevels, ll + (hh - ll) * fibRatioB)
     array.push(fibLevels, hh)
     for _ = 0 to 3
         array.push(fibTimes, bar_index)
 
-// ── Iterate Over Levels and Report Confluence Score ──
+// Iterate over levels and report confluence score when overlapping
 if array.size(srLevels) > 0
     for i = 0 to array.size(srLevels)-1
         srLevel = array.get(srLevels, i)
@@ -79,9 +72,9 @@ if array.size(srLevels) > 0
             fibTime  = array.get(fibTimes, j)
             float distAbs  = math.abs(srLevel - fibLevel)
             float distPct  = distAbs / close
-            if distPct <= levelThresholdInput
-                float strength = 1.0 - distPct / levelThresholdInput
-                conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThresholdInput,maxTemporalDiffInput,coefDistanceInput,coefSignalInput,coefRetestsInput,coefTemporalInput,weightSchemeInput,kDistInput,kTempInput)
+            if distPct <= levelThreshold
+                float strength = 1.0 - distPct / levelThreshold
+                conf.ConfluenceInput ci = conf.ConfluenceInput.new(fibLevel,srLevel,strength,atr,fibTime,1,1,srTime,levelThreshold,maxTemporalDiff,coefDistance,coefSignal,coefRetests,coefTemporal,weightScheme,kDist,kTemp)
                 conf.CalculatedWeights cw = conf.calculateConfluence(ci)
                 float score = cw.confluence_weight
                 label.new(bar_index, srLevel, 'Conf: ' + str.tostring(score, '#.###'),style=styles.label_style, color=styles.label_bg, textcolor=styles.label_text_color)
