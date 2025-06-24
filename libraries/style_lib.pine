@@ -15,7 +15,6 @@ export const int   FIB_WIDTH       = 2
 
 // ---- Label and anchor settings ----
 export const string LABEL_SIZE     = "small"
-export const string LABEL_SIZE     = "tiny"
 export const int    LABEL_OFFSET   = 2
 export const string ANCHOR_STYLE   = label.style_label_down
 export const color  ANCHOR_TEXT_COLOR = color.yellow
