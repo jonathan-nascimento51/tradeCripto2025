@@ -1,6 +1,6 @@
 //@version=6
 indicator('Array Utils Lib Test', overlay=true)
-import "../libraries/array_utils_lib.pine" as au
+import jonathanmoletta17/ArrayUtilsLib/1 as au
 
 var float[] arr = array.from(1.0, 2.0, 3.0)
 
