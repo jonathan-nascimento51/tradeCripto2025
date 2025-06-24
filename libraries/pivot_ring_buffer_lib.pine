@@ -1,7 +1,6 @@
 //@version=6
+// @description Biblioteca para detectar pivôs e devolvê‑los já validados
 library("PivotRingBuffer", true)
-
-import "./style_lib.pine" as st
 
 // -----------------------------------------------------------------------------
 // Tipos

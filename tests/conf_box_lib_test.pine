@@ -1,6 +1,6 @@
 //@version=6
 indicator('Conf Box Lib Test', overlay=true)
-import "../libraries/conf_box_lib.pine" as cb
+import jonathanmoletta17/ConfBoxLib/2 as cb
 
 var box[] boxes = array.new<box>()
 if barstate.isfirst
