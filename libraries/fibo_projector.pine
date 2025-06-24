@@ -45,7 +45,7 @@ export newProjector() =>
 // `atrVal` is the current ATR value used to size the golden zone.
 // `atrMult` controls how wide the golden zone is (in ATR multiples).
 // -----------------------------------------------------------------------------
-export method computeLevels(
+export computeLevels(
     Projector self,
     float p1,
     float p2,

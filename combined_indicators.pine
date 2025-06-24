@@ -15,13 +15,14 @@ import jonathanmoletta17/PivotUtils/4 as pv
 import jonathanmoletta17/ConfluenceLib/9 as conf
 import jonathanmoletta17/StyleLib/9 as sty
 import jonathanmoletta17/FibExtensionLib/3 as fib
+import jonathanmoletta17/FiboProjector/2 as fb
 import jonathanmoletta17/SRManagerLib/2 as srm
 import jonathanmoletta17/ConfBoxLib/2 as cb
 
 // Retrieve centralized styling options. Scripts can still reference the
 // individual constants if desired but using this object keeps the code tidy.
 
-indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "CSFZ_v7", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
+indicator("Combined S/R + Fib (Volatility Zone v7) [Corrected]", "teste", overlay=true, max_lines_count=500, max_labels_count=300, max_boxes_count=100)
 
 // Declarar cores globalmente (serão atualizadas via StyleLib)
 var color borderColorRes = na
@@ -75,6 +76,10 @@ labelSizeOptInput  = input.string(sty.LABEL_SIZE, "Fib Label Size",
                              options=[size.tiny, size.small, size.normal, size.large, size.huge],
                              group="Style – Fibonacci")
 labelOffsetInput   = input.int(sty.LABEL_OFFSET, "Label offset (bars)", minval=0)
+showGoldenZoneInput = input.bool(true, "Mostrar Zona Dourada", group="Estilo – Fibonacci") 
+useAdaptiveGZInput = input.bool(false, "Zona Áurea Adaptativa", group="Estilo – Fibonacci") 
+kFactorInput = input.float(0.5, "k Factor", step=0.1, group="Style – Fibonacci") 
+atrMultInput = input.float(1.0, "ATR Mult", step=0.1, group="Style – Fibonacci") 
 
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkersInput = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
@@ -89,6 +94,7 @@ const int MAX_TRAIN_SAMPLES = 200
 var sru.SR_Zone[] sr_zones = array.new<sru.SR_Zone>()
 var fib.FibLevel[] fib_levels = array.new<fib.FibLevel>()
 var box[] confBoxes = array.new_box()
+var fb.Projector fibProjector = fb.newProjector()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
 var float[] trainX3 = array.new<float>()
@@ -203,8 +209,8 @@ else
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=-lengthInput)
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=-lengthInput)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=0)
+plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=0)
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
@@ -219,22 +225,29 @@ if bar_index >= lengthInput
 
     if isPivotHighOrigin
         lastHigh := ph
-        lastHighIdx := bar_index - lengthInput
+        lastHighIdx := bar_index
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorHighLabel)
-            fibAnchorHighLabel := label.new(lastHighIdx, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
+            fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
-        lastLowIdx := bar_index - lengthInput
+        lastLowIdx := bar_index
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorLowLabel)
-            fibAnchorLowLabel := label.new(lastLowIdx, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
+            fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabledInput and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
     int startIdx = math.min(lastHighIdx, lastLowIdx)
     fib.drawLevels(fib_levels, startIdx, lastHigh, lastLow, fibBaseColorInput, fibExtUpColInput, fibExtDnColInput, fibWidthInput, labelSizeOptInput, labelOffsetInput)
+    float p1 = lastHighIdx < lastLowIdx ? lastHigh : lastLow
+    float p2 = lastHighIdx < lastLowIdx ? lastLow : lastHigh
+    fb.computeLevels(fibProjector, p1, p2, atr, atrMultInput, useAdaptiveGZInput, kFactorInput)
+    fb.draw(fibProjector, startIdx, bar_index, fibBaseColorInput, fibExtUpColInput, color.new(color.yellow, 70), fibWidthInput, labelSizeOptInput, labelOffsetInput)
+    if not showGoldenZoneInput and not na(fibProjector.goldBox)
+        box.delete(fibProjector.goldBox)
 else if not fibEnabledInput
     fib.clearLevels(fib_levels)
+    fb.clearDrawings(fibProjector)
     label.delete(fibAnchorHighLabel)
     label.delete(fibAnchorLowLabel)
 
