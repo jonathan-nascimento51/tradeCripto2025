@@ -97,6 +97,7 @@ var float[] trainY  = array.new<float>()
 // current set of samples.
 var bool trained = false
 var string prevWeights = ""
+var table infoTable = table.new(position.top_right, 6, 2)
 
 f_pushSample(float x1, float x2, float x3, float y) =>
     array.push(trainX1, x1)
@@ -212,7 +213,7 @@ var label fibAnchorHighLabel = na
 var label fibAnchorLowLabel = na
 
 // Só atualiza âncora quando um novo pivô é formado
-if bar_index >= length
+if bar_index >= lengthInput
 
     if isPivotHighOrigin
         lastHigh := ph
@@ -244,7 +245,7 @@ if confEnabledInput
                         if score > 0
                             color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.green, color.red)
                             string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fibo.level) + " (" + str.tostring(fibo.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
-                            box confBox = box.new(bar_index, math.max(zone.level, fibo.level), bar_index + confluenceBoxWidth, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                            box confBox = box.new(bar_index, math.max(zone.level, fibo.level), bar_index + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
     else
         cb.clearBoxes(confBoxes)
