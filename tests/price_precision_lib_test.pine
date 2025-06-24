@@ -1,8 +1,8 @@
 //@version=6
 indicator("PricePrecisionLib Test", overlay=true)
 
-import "../libraries/price_precision_lib.pine" as PPLib
-import "../libraries/style_lib.pine" as st
+import jonathanmoletta17/PricePrecisionLib/1 as PPLib
+import jonathanmoletta17/StyleLib/9 as st
 
 st.Styles styles = st.getStyles()
 
