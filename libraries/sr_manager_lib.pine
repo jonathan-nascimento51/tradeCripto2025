@@ -2,8 +2,8 @@
 
 library("SRManagerLib", true)
 
-import "./sr_zone_utils.pine" as sru
-import "./logistic_model_lib.pine" as lm
+import jonathanmoletta17/SRZoneUtils/4 as sru
+import jonathanmoletta17/LogisticModelLib/5 as lm
 
 // -----------------------------------------------------------------------------
 // createZone
