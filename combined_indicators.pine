@@ -209,6 +209,8 @@ plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na
 var float lastLow = na
+var int   lastHighIdx = na
+var int   lastLowIdx  = na
 var label fibAnchorHighLabel = na
 var label fibAnchorLowLabel = na
 
@@ -217,17 +219,20 @@ if bar_index >= lengthInput
 
     if isPivotHighOrigin
         lastHigh := ph
+        lastHighIdx := bar_index
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorHighLabel)
             fibAnchorHighLabel := label.new(bar_index, ph, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Superior Fibonacci")
     if isPivotLowOrigin
         lastLow := pl
+        lastLowIdx := bar_index
         if showFibAnchorsInput and fibEnabledInput
             label.delete(fibAnchorLowLabel)
             fibAnchorLowLabel := label.new(bar_index, pl, "⦿", style=sty.ANCHOR_STYLE, textcolor=sty.ANCHOR_TEXT_COLOR, size=sty.ANCHOR_SIZE, tooltip="Âncora Inferior Fibonacci")
 
 if fibEnabledInput and not na(lastHigh) and not na(lastLow) and barstate.isconfirmed
-    fib.drawLevels(fib_levels, bar_index, lastHigh, lastLow, fibBaseColorInput, fibExtUpColInput, fibExtDnColInput, fibWidthInput, labelSizeOptInput, labelOffsetInput)
+    int startIdx = math.min(lastHighIdx, lastLowIdx)
+    fib.drawLevels(fib_levels, startIdx, lastHigh, lastLow, fibBaseColorInput, fibExtUpColInput, fibExtDnColInput, fibWidthInput, labelSizeOptInput, labelOffsetInput)
 else if not fibEnabledInput
     fib.clearLevels(fib_levels)
     label.delete(fibAnchorHighLabel)
@@ -245,7 +250,8 @@ if confEnabledInput
                         if score > 0
                             color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.green, color.red)
                             string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fibo.level) + " (" + str.tostring(fibo.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
-                            box confBox = box.new(bar_index, math.max(zone.level, fibo.level), bar_index + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                            int boxStart = math.min(zone.bar_index, fibo.bar_index)
+                            box confBox = box.new(boxStart, math.max(zone.level, fibo.level), boxStart + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
     else
         cb.clearBoxes(confBoxes)

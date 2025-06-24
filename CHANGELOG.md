@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
 - Bumped Prompt-Builder to **v2.0** with a new `<backtest_and_validate>` action
   that instructs `qa_backtest` to run walk-forward optimization and Monte Carlo
   analyses whenever backtesting is requested.
+- Fixed plotting offsets in `combined_indicators.pine` by anchoring Fibonacci
+  levels and confluence boxes to the original pivot bar indices.
 - Added **RiskManager** library implementing Kelly-based position sizing with stop helpers.
 - `fibo_projector.pine` now supports an adaptive golden zone via the new
   `useAdaptiveGZ` and `kFactor` parameters and has a demo toggle in
