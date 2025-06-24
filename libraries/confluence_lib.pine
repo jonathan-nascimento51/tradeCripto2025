@@ -5,7 +5,7 @@
 //  ▸ Implementa as regras de cálculo baseadas na sua especificação JSON.
 // =============================================================================
 library("ConfluenceLib", true)
-import "logistic_model_lib.pine" as lm
+import jonathanmoletta17/LogisticModelLib/5 as lm
 
 // UDT PARA DADOS DE ENTRADA
 // Agrupa todos os valores brutos necessários para o cálculo.
@@ -54,7 +54,8 @@ export method calculateConfluence(ConfluenceInput input) =>
     string scheme = str.lower(input.weight_scheme)
     // Validate weight scheme. Warn the user via `alert()` and
     // automatically fallback to "linear" when an unsupported
-    // mode is provided.    bool valid_scheme = scheme == "linear" or scheme == "exponential" or scheme == "logistic"
+    // mode is provided.
+    bool valid_scheme = scheme == "linear" or scheme == "exponential" or scheme == "logistic"
     if not valid_scheme
         alert("ConfluenceLib: invalid weight_scheme '" + input.weight_scheme + "'. Using linear fallback")
         scheme := "linear"
