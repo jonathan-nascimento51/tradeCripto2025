@@ -1,26 +1,27 @@
 //@version=6
-library("PivotRingBuffer", true)
-
-import "./style_lib.pine" as st
+// @description Biblioteca para detectar pivôs e devolvê‑los já validados
+library("PivotRingBuffer")
 
 // -----------------------------------------------------------------------------
-// PivotCandidate type represents a potential pivot before confirmation
+// Tipos
 // -----------------------------------------------------------------------------
 export type PivotCandidate
-    float price
-    int   barIdx
-    bool  isHigh
+    float price      // Preço do pivô bruto
+    int   barIdx     // Índice da barra onde ocorreu
+    bool  isHigh     // true = pivô de máxima, false = mínima
 
 export type RingBuffer
-    PivotCandidate[] buffer
-    int              capacity
+    PivotCandidate[] buffer // Fila circular dos candidatos
+    int              capacity // Número máximo de candidatos guardados
+// -----------------------------------------------------------------------------
+// Construtor
+// -----------------------------------------------------------------------------
 
 export newRingBuffer(int cap) =>
     RingBuffer.new(array.new<PivotCandidate>(), math.max(1, cap))
 
 // -----------------------------------------------------------------------------
-// setCapacity
-// Allows adjusting the maximum number of stored candidates
+// Ajusta a capacidade máxima
 // -----------------------------------------------------------------------------
 export setCapacity(RingBuffer self, int cap) =>
     self.capacity := math.max(1, cap)
@@ -28,24 +29,23 @@ export setCapacity(RingBuffer self, int cap) =>
         array.shift(self.buffer)
 
 // -----------------------------------------------------------------------------
-// clearBuffer
-// Removes all stored candidates
+// Limpa o buffer
 // -----------------------------------------------------------------------------
 export clearBuffer(RingBuffer self) =>
     array.clear(self.buffer)
 
 // -----------------------------------------------------------------------------
 // processCandidate
-// Detects raw pivots using ta.pivothigh/low with right=0 and stores them.
-// After rightBars have passed, validates each candidate and plots markers.
-// Returns the prices of confirmed pivot high and low (na when none).
+//  • Detecta pivôs brutos usando ta.pivothigh/low com right = 0;
+//  • Armazena‑os no buffer;
+//  • Após rightBars barras, valida o pivô contra o extremo mais alto/baixo do período;
+//  • Devolve [highValidated, lowValidated] com na quando inexistente.
 // -----------------------------------------------------------------------------
-export processCandidate(RingBuffer self, float highSrc, float lowSrc, int leftBars, int rightBars) =>
+export processCandidate(RingBuffer self, series float highSrc, series float lowSrc, int leftBars, int rightBars) =>
     float resHigh = na
     float resLow  = na
-    st.Styles styles = st.getStyles()
 
-    // Detect new pivot candidates immediately when the left side condition holds
+    // 1) novos candidatos
     float hCand = ta.pivothigh(highSrc, leftBars, 0)
     if not na(hCand)
         array.push(self.buffer, PivotCandidate.new(hCand, bar_index, true))
@@ -54,31 +54,25 @@ export processCandidate(RingBuffer self, float highSrc, float lowSrc, int leftBa
     if not na(lCand)
         array.push(self.buffer, PivotCandidate.new(lCand, bar_index, false))
 
-    // Enforce ring buffer capacity
+    // 2) aplica capacidade de forma FIFO
     while array.size(self.buffer) > self.capacity
         array.shift(self.buffer)
 
+    // 3) valida e remove expirados
     int i = 0
     while i < array.size(self.buffer)
         PivotCandidate cand = array.get(self.buffer, i)
         int age = bar_index - cand.barIdx
+
         if age >= rightBars
             if age == rightBars
-                bool valid = cand.isHigh ? cand.price >= ta.highest(highSrc, rightBars + 1)
-                                           : cand.price <= ta.lowest(lowSrc, rightBars + 1)
+                bool valid = cand.isHigh ? cand.price >= ta.highest(highSrc, rightBars + 1) : cand.price <= ta.lowest(lowSrc, rightBars + 1)
                 if valid
                     if cand.isHigh
                         resHigh := cand.price
-                        plotshape(cand.price, title="Pivot High", style=shape.triangledown,
-                                  
-                                  location=location.absolute, color=styles.fib_ext_dn_col,
-                                  offset=-rightBars, size=size.tiny)
                     else
-                        resLow := cand.price
-                        plotshape(cand.price, title="Pivot Low", style=shape.triangleup,
-                                  
-                                  location=location.absolute, color=styles.fib_ext_up_col,
-                                  offset=-rightBars, size=size.tiny)
+                        resLow  := cand.price
+            // remove o candidato, validado ou não
             array.remove(self.buffer, i)
         else
             i += 1
