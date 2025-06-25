@@ -113,11 +113,13 @@ f_calculate() =>
 
     // Ensure we have both pivots to build an extension
     if na(lastHigh) or na(lastLow)
-        [na, na, na]
+        [na, na, na, na, na]
     else
         bool isUp = lastLowIdx < lastHighIdx
         float startP = isUp ? lastLow : lastHigh
         float endP   = isUp ? lastHigh : lastLow
+        int   startIdx = isUp ? lastLowIdx : lastHighIdx
+        int   endIdx   = isUp ? lastHighIdx : lastLowIdx
         float diff   = math.abs(endP - startP)
         // Positive orientation when the last movement was upward; reversed if input is set
         float sign   = (isUp ? 1 : -1) * (reverse ? -1 : 1)
@@ -126,10 +128,21 @@ f_calculate() =>
         bool valid = isUp ?
             (lastLow < endP - diff * lowerThresh or lastLow > endP - diff * upperThresh) :
             (lastHigh > endP + diff * lowerThresh or lastHigh < endP + diff * upperThresh)
+        valid ? [endP, diff, sign, startIdx, endIdx] : [na, na, na, na, na]
 
-        valid ? [endP, diff, sign] : [na, na, na]
+[endPrice, span, orient, startIdx, endIdx] = f_calculate()
 
-[endPrice, span, orient] = f_calculate()
+// Draw pivot markers only when they are not the current Fibonacci anchors
+isHighPivotBar = not na(ta.pivothigh(high, depth, depth))
+isLowPivotBar  = not na(ta.pivotlow(low, depth, depth))
+highIdx = bar_index - depth
+lowIdx  = bar_index - depth
+plotshape(isHighPivotBar and highIdx != startIdx and highIdx != endIdx,
+          style=shape.triangledown, location=location.abovebar,
+          color=color.red, size=size.tiny, offset=-depth, title="Pivot High")
+plotshape(isLowPivotBar and lowIdx != startIdx and lowIdx != endIdx,
+          style=shape.triangleup, location=location.belowbar,
+          color=color.green, size=size.tiny, offset=-depth, title="Pivot Low")
 
 // Show a warning instead of halting execution when there is not enough data
 var label warnLbl = na
