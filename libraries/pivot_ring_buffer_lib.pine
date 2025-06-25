@@ -35,13 +35,56 @@ export clearBuffer(RingBuffer self) =>
     array.clear(self.buffer)
 
 // -----------------------------------------------------------------------------
+// cleanupCandidates
+//  • Valida candidatos antigos e remove expirados com limite de iterações.
+//  • Retorna pivôs validados ou na quando inexistentes.
+// -----------------------------------------------------------------------------
+export cleanupCandidates(
+     RingBuffer self,
+     series float highSrc,
+     series float lowSrc,
+     int rightBars,
+     int maxIter
+ ) =>
+    float resHigh = na
+    float resLow  = na
+    int   i       = 0
+    int   iter    = 0
+    while i < array.size(self.buffer) and iter < maxIter
+        PivotCandidate cand = array.get(self.buffer, i)
+        int age = bar_index - cand.barIdx
+        if age >= rightBars
+            if age == rightBars
+                bool valid = cand.isHigh ?
+                                 cand.price >= ta.highest(highSrc, rightBars + 1) :
+                                 cand.price <= ta.lowest(lowSrc, rightBars + 1)
+                if valid
+                    if cand.isHigh
+                        resHigh := cand.price
+                    else
+                        resLow  := cand.price
+            array.remove(self.buffer, i)
+        else
+            i += 1
+        iter += 1
+    [resHigh, resLow]
+
+// -----------------------------------------------------------------------------
 // processCandidate
 //  • Detecta pivôs brutos usando ta.pivothigh/low com right = 0;
 //  • Armazena‑os no buffer;
 //  • Após rightBars barras, valida o pivô contra o extremo mais alto/baixo do período;
 //  • Devolve [highValidated, lowValidated] com na quando inexistente.
 // -----------------------------------------------------------------------------
-export processCandidate(RingBuffer self, series float highSrc, series float lowSrc, int leftBars, int rightBars) =>
+export processCandidate(
+     RingBuffer self,
+     series float highSrc,
+     series float lowSrc,
+     int leftBars,
+     int rightBars,
+     int maxIter = 20,
+     bool autoCleanup = true
+ ) =>
     float resHigh = na
     float resLow  = na
 
@@ -54,27 +97,15 @@ export processCandidate(RingBuffer self, series float highSrc, series float lowS
     if not na(lCand)
         array.push(self.buffer, PivotCandidate.new(lCand, bar_index, false))
 
-    // 2) aplica capacidade de forma FIFO
-    while array.size(self.buffer) > self.capacity
+    // 2) aplica capacidade de forma FIFO com limite de iterações
+    int removed = 0
+    while array.size(self.buffer) > self.capacity and removed < maxIter
         array.shift(self.buffer)
+        removed += 1
 
-    // 3) valida e remove expirados
-    int i = 0
-    while i < array.size(self.buffer)
-        PivotCandidate cand = array.get(self.buffer, i)
-        int age = bar_index - cand.barIdx
-
-        if age >= rightBars
-            if age == rightBars
-                bool valid = cand.isHigh ? cand.price >= ta.highest(highSrc, rightBars + 1) : cand.price <= ta.lowest(lowSrc, rightBars + 1)
-                if valid
-                    if cand.isHigh
-                        resHigh := cand.price
-                    else
-                        resLow  := cand.price
-            // remove o candidato, validado ou não
-            array.remove(self.buffer, i)
-        else
-            i += 1
+    // 3) valida e remove expirados utilizando função de limpeza
+    [resHigh, resLow] := autoCleanup ?
+        cleanupCandidates(self, highSrc, lowSrc, rightBars, maxIter) :
+        [na, na]
 
     [resHigh, resLow]

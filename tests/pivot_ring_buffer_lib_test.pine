@@ -8,7 +8,15 @@ capacity  = input.int(20, 'Buffer Capacity')
 
 prb.RingBuffer rb = prb.newRingBuffer(capacity)
 prb.setCapacity(rb, capacity)
-[float ph, float pl] = prb.processCandidate(rb, high, low, leftBars, rightBars)
+cleanupEvery = input.int(1, 'Cleanup Every')
+var int counter = 0
+
+[float _ph, float _pl] = prb.processCandidate(rb, high, low, leftBars, rightBars, 20, false)
+float ph = na
+float pl = na
+if counter == 0 or barstate.islast
+    [ph, pl] := prb.cleanupCandidates(rb, high, low, rightBars, 20)
+counter := (counter + 1) % cleanupEvery
 
 plot(close)
 plotshape(not na(ph) ? ph : na, style=shape.triangledown, location=location.absolute, color=color.red, size=size.tiny)
