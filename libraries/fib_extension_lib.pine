@@ -49,7 +49,8 @@ export createLine(int barIndex, float y, color lnCol, bool isExt, int width) =>
 // Places a label near the Fibonacci line with the level price and ratio.
 // -----------------------------------------------------------------------------
 export createLabel(int barIndex, float y, float ratio, bool leftSide, color lnCol, string lblSize, int lblOffset) =>
-    string lblTxt = str.tostring(ratio * 100, "#.##") + "% → " + str.tostring(y, format.mintick)
+    string levelType = ratio > 1 ? "Extensão" : "Retração"
+    string lblTxt = str.tostring(ratio * 100, "#.##") + "% " + levelType + " → " + str.tostring(y, format.mintick)
     label.new(barIndex + (leftSide ? lblOffset : -lblOffset), y,
               text=lblTxt,
               xloc=xloc.bar_index,
