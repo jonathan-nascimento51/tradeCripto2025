@@ -156,12 +156,25 @@ if useTrainedWeightsInput
         trained := true
     else if (not trained) and array.size(trainY) > 0
         // Pass the last known weights so training resumes from the current model state.
-        lm.TrainResult res = lm.gradientDescent(trainX1, trainX2, trainX3, trainY, trainRateInput, trainEpochsInput, finalW0, finalW1, finalW2, finalW3)
-        finalW0 := res.w0
-        finalW1 := res.w1
-        finalW2 := res.w2
-        finalW3 := res.w3
-        trained := true
+        lm.TrainResult res = lm.gradientDescent(
+            trainX1,
+            trainX2,
+            trainX3,
+            trainY,
+            trainRateInput,
+            trainEpochsInput,
+            finalW0,
+            finalW1,
+            finalW2,
+            finalW3,
+            barstate.islast
+        )
+        if barstate.islast
+            finalW0 := res.w0
+            finalW1 := res.w1
+            finalW2 := res.w2
+            finalW3 := res.w3
+            trained := res.ok
 else
     // When not using trained weights, fall back to the user inputs every bar.
     finalW0 := logW0Input
