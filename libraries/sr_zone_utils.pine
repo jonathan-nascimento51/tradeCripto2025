@@ -88,8 +88,9 @@ export markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color 
     zone.line_lower.set_extend(extend.none)
     zone.line_upper.set_x2(bar_index)
     zone.line_lower.set_x2(bar_index)
-    zone.lbl.set_text("B")
+    string retestInfo = str.tostring(zone.retests)
+    zone.lbl.set_text("B (" + retestInfo + ")")
     zone.lbl.set_textcolor(srColorBroken)
     zone.lbl.set_color(color.new(color.gray, 80))
-    zone.lbl.set_tooltip("Zona rompida.")
+    zone.lbl.set_tooltip("Zona rompida após " + retestInfo + " retestes.")
     zone.retests < retestCount
