@@ -5,6 +5,20 @@ import jonathanmoletta17/PivotUtils/4 as pv
 import jonathanmoletta17/FibExtensionLib/3 as fe
 
 // -----------------------------------------------------------------------------
+//  Cached data used across bars
+// -----------------------------------------------------------------------------
+var float[] _fibRatios      = fe.getRatios()            // static Fibonacci ratios
+var float[] _cachedPrices   = array.new<float>()        // reuse arrays for levels
+var float[] _cachedWeights  = array.new<float>()
+var int      _lastSwingEnd  = na                        // last swing end index
+
+var Cluster[] _cachedClusters = array.new<Cluster>()    // cluster cache
+var int       _lastLvlSize    = na                      // to detect changes
+var float     _lastFirstLvl   = na
+var float     _lastLastLvl    = na
+var float     _lastThreshold  = na
+
+// -----------------------------------------------------------------------------
 //  Swing structure to store pivot pairs
 // -----------------------------------------------------------------------------
 export type Swing
@@ -68,21 +82,24 @@ _ratioWeight(float r) => r < 1 ? 1 - r : 1 / r
 // Returns a tuple of price array and weight array.
 // -----------------------------------------------------------------------------
 export getFibLevels(Swing[] swings) =>
-    float[] prices = array.new<float>()
-    float[] weights = array.new<float>()
-    float[] ratios = fe.getRatios()
-    int total = array.size(swings)
-    for idx = 0 to total - 1
-        Swing sw = array.get(swings, idx)
-        float diff = math.abs(sw.high - sw.low)
-        bool isUp = sw.high > sw.low
-        float swingW = (idx + 1) / float(total)
-        for j = 0 to array.size(ratios) - 1
-            float r = array.get(ratios, j)
-            float lvl = fe.calcLevel(sw.high, sw.low, diff, isUp, r)
-            array.push(prices, lvl)
-            array.push(weights, swingW * _ratioWeight(r))
-    [prices, weights]
+    // detect if swings array changed using the last end index
+    int curEnd = array.size(swings) > 0 ? array.get(swings, array.size(swings) - 1).end_idx : na
+    if curEnd != _lastSwingEnd
+        array.clear(_cachedPrices)
+        array.clear(_cachedWeights)
+        int total = array.size(swings)
+        for idx = 0 to total - 1
+            Swing sw = array.get(swings, idx)
+            float diff = math.abs(sw.high - sw.low)
+            bool isUp = sw.high > sw.low
+            float swingW = (idx + 1) / float(total)
+            for j = 0 to array.size(_fibRatios) - 1
+                float r = array.get(_fibRatios, j)
+                float lvl = fe.calcLevel(sw.high, sw.low, diff, isUp, r)
+                array.push(_cachedPrices, lvl)
+                array.push(_cachedWeights, swingW * _ratioWeight(r))
+        _lastSwingEnd := curEnd
+    [_cachedPrices, _cachedWeights]
 
 // -----------------------------------------------------------------------------
 // clusterLevels
@@ -90,41 +107,47 @@ export getFibLevels(Swing[] swings) =>
 // Score is the average weight of all levels in the cluster.
 // -----------------------------------------------------------------------------
 export clusterLevels(float[] levels, float[] weights, float threshold) =>
-    Cluster[] clusters = array.new<Cluster>()
     int n = array.size(levels)
+    float first = n > 0 ? array.get(levels, 0) : na
+    float last = n > 0 ? array.get(levels, n - 1) : na
 
-    if n == 0
-        clusters            // fallback branch when no levels
-    else
-        // ❶ devolve índices ordenados pelo preço (ascendente por padrão)
-        int[] idxs = array.sort_indices(levels)
+    // recalc only when levels or threshold changed
+    if n != _lastLvlSize or first != _lastFirstLvl or last != _lastLastLvl or threshold != _lastThreshold
+        array.clear(_cachedClusters)
+        if n != 0
+            // ❶ devolve índices ordenados pelo preço (ascendente por padrão)
+            int[] idxs = array.sort_indices(levels)
 
-        // ❷ percorre esses índices formando os clusters
-        float curLow   = array.get(levels, array.get(idxs, 0))
-        float curHigh  = curLow
-        float curScore = array.get(weights, array.get(idxs, 0))
-        int   curCount = 1
+            // ❷ percorre esses índices formando os clusters
+            float curLow   = array.get(levels, array.get(idxs, 0))
+            float curHigh  = curLow
+            float curScore = array.get(weights, array.get(idxs, 0))
+            int   curCount = 1
 
-        for k = 1 to n - 1
-            int   id    = array.get(idxs, k)
-            float price = array.get(levels, id)
-            float w     = array.get(weights, id)
+            for k = 1 to n - 1
+                int   id    = array.get(idxs, k)
+                float price = array.get(levels, id)
+                float w     = array.get(weights, id)
 
-            if math.abs(price - curHigh) <= threshold
-                curLow   := math.min(curLow,  price)
-                curHigh  := math.max(curHigh, price)
-                curScore += w
-                curCount += 1
-            else
-                array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
-                curLow   := price
-                curHigh  := price
-                curScore := w
-                curCount := 1
+                if math.abs(price - curHigh) <= threshold
+                    curLow   := math.min(curLow,  price)
+                    curHigh  := math.max(curHigh, price)
+                    curScore += w
+                    curCount += 1
+                else
+                    array.push(_cachedClusters, Cluster.new(curLow, curHigh, curScore / curCount))
+                    curLow   := price
+                    curHigh  := price
+                    curScore := w
+                    curCount := 1
 
-        // último cluster
-        array.push(clusters, Cluster.new(curLow, curHigh, curScore / curCount))
-        clusters
+            // último cluster
+            array.push(_cachedClusters, Cluster.new(curLow, curHigh, curScore / curCount))
+        _lastLvlSize   := n
+        _lastFirstLvl  := first
+        _lastLastLvl   := last
+        _lastThreshold := threshold
+    _cachedClusters
 
 // -----------------------------------------------------------------------------
 // drawClusters
