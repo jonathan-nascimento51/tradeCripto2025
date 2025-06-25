@@ -80,4 +80,4 @@ def has_exports_without_library(file_path: str) -> bool:
         return False
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
-    return "export" in text and "library(" not in text
+    return "export" in text and ("library(" not in text)
