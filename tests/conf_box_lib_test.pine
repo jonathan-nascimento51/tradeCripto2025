@@ -9,3 +9,6 @@ if barstate.isfirst
 
 if barstate.islast
     cb.clearBoxes(boxes)
+
+// Expected output: one blue box appears from the first bar to the next and is
+// removed on the last bar.

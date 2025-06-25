@@ -16,3 +16,6 @@ if barstate.isfirst
                   styles.fib_base_color, styles.fib_ext_up_col,
                   styles.fib_ext_dn_col, styles.fib_width,
                   styles.label_size, styles.label_offset)
+
+// Expected output: label text "Ratios: 10" on the first bar and standard
+// Fibonacci extension levels drawn from the first bar's range.
