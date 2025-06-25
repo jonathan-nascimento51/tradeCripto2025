@@ -86,6 +86,10 @@ atrMultInput        = input.float(1.0, "ATR Mult", step=0.1, group="Style – Fi
 // REFINAMENTO VISUAL: Inputs para controlar os novos elementos gráficos
 showPivotMarkersInput = input.bool(true, "Show S/R Pivot Markers", group="Style – Refinements")
 showFibAnchorsInput = input.bool(true, "Show Fibonacci Anchors", group="Style – Refinements")
+maxPivotMarkersInput = input.int(20, "Max Pivot Markers", minval=0, group="Style – Refinements")
+showBrokenZonesInput = input.bool(true, "Show Broken Zones", group="Style – S/R")
+hideFarZonesInput = input.bool(true, "Hide Far Zones", group="Support/Resistance")
+farZonesAtrMultInput = input.float(7.0, "Far Zone ATR Mult", step=0.5, group="Support/Resistance")
 
 // ─────────────────────────── Estruturas de Dados (UDT) ─────────────────────
 const int MAX_SR_ZONES = 30
@@ -99,6 +103,11 @@ var fib.FibLevel[] fib_levels = array.new<fib.FibLevel>()
 var fb.Projector fibProjector = fb.newProjector()
 var box[] confBoxes = array.new_box()
 var label[] confLabels = array.new<label>()
+<<<<<<< ours
+=======
+var label[] pivotHighMarkers = array.new<label>()
+var label[] pivotLowMarkers  = array.new<label>()
+>>>>>>> theirs
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
 var float[] trainX3 = array.new<float>()
@@ -191,7 +200,8 @@ if srEnabledInput
     srm.createZone(sr_zones, pl, true, srColorSupInput, borderColorSup, rsi, rsiThresholdInput, atr, volMA, close, open, volume, finalW0, finalW1, finalW2, finalW3, probThresholdInput, volatilityBandATRInput, lengthInput, MAX_SR_ZONES)
 
     var bool retrainNeeded = false
-    for zone in sr_zones
+    for i = array.size(sr_zones) - 1 to 0
+        sru.SR_Zone zone = array.get(sr_zones, i)
         if zone.status != "Broken"
             bool isRetest = zone.isSupport ? low < zone.level and close >= zone.level : high > zone.level and close <= zone.level
             bool isBroken = zone.isSupport ? close < zone.level : close > zone.level
@@ -205,21 +215,40 @@ if srEnabledInput
 
             if isBroken and isDominant
                 bool earlyBreak = sru.markBroken(zone, retestCountInput, borderColorBroken, srColorBrokenInput)
+                if not showBrokenZonesInput
+                    sru.deleteZone(sr_zones, i)
                 if earlyBreak
                     f_pushSample(zone.x1, zone.x2, zone.x3, 0.0)
                     retrainNeeded := true
     if retrainNeeded
         trained := false
+    if hideFarZonesInput
+        sru.removeFarZones(sr_zones, close, atr, farZonesAtrMultInput)
 else
     // Garante que os marcadores não sejam plotados se o subsistema estiver desativado
     isPivotHighOrigin := false
     isPivotLowOrigin := false
     sru.clearZones(sr_zones)
+    for lb in pivotHighMarkers
+        label.delete(lb)
+    array.clear(pivotHighMarkers)
+    for lb in pivotLowMarkers
+        label.delete(lb)
+    array.clear(pivotLowMarkers)
 
 // --- Plotagem dos Marcadores de Pivô ---
 // Só plota na barra de formação do pivô
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotHighOrigin ? ph : na, title="PH Marker", style=shape.triangledown, location=location.absolute, color=color.new(srColorResInput, 20), size=size.small, offset=0)
-plotshape(bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput and isPivotLowOrigin ? pl : na, title="PL Marker", style=shape.triangleup, location=location.absolute, color=color.new(srColorSupInput, 20), size=size.small, offset=0)
+if bar_index >= lengthInput and srEnabledInput and showPivotMarkersInput
+    if isPivotHighOrigin
+        label phLbl = label.new(bar_index, ph, "", style=label.style_triangledown, color=color.new(srColorResInput, 20), size=size.tiny)
+        array.push(pivotHighMarkers, phLbl)
+        if array.size(pivotHighMarkers) > maxPivotMarkersInput
+            label.delete(array.shift(pivotHighMarkers))
+    if isPivotLowOrigin
+        label plLbl = label.new(bar_index, pl, "", style=label.style_triangleup, color=color.new(srColorSupInput, 20), size=size.tiny)
+        array.push(pivotLowMarkers, plLbl)
+        if array.size(pivotLowMarkers) > maxPivotMarkersInput
+            label.delete(array.shift(pivotLowMarkers))
 
 // --- Lógica de Fibonacci ---
 var float lastHigh = na

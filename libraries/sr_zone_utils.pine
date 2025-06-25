@@ -94,3 +94,24 @@ export markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color 
     zone.lbl.set_color(color.new(color.gray, 80))
     zone.lbl.set_tooltip("Zona rompida após " + retestInfo + " retestes.")
     zone.retests < retestCount
+
+// -----------------------------------------------------------------------------
+// deleteZone
+// Removes a zone from the array and deletes its drawing objects.
+// -----------------------------------------------------------------------------
+export deleteZone(SR_Zone[] zones, int idx) =>
+    SR_Zone z = array.remove(zones, idx)
+    line.delete(z.line_upper)
+    line.delete(z.line_lower)
+    linefill.delete(z.fill_obj)
+    label.delete(z.lbl)
+
+// -----------------------------------------------------------------------------
+// removeFarZones
+// Deletes zones far from the current price based on ATR multiple.
+// -----------------------------------------------------------------------------
+export removeFarZones(SR_Zone[] zones, float closePrice, float atr, float mult) =>
+    for i = array.size(zones) - 1 to 0
+        SR_Zone z = array.get(zones, i)
+        if math.abs(closePrice - z.level) > atr * mult
+            deleteZone(zones, i)
