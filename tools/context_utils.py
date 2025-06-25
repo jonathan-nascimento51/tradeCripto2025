@@ -2,7 +2,11 @@ import os
 from typing import List
 
 
-def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -> str:
+def extract_code_snippet(
+    file_path: str,
+    function_name: str,
+    window: int = 30,
+) -> str:
     """Return `window` lines after the first match of `function_name`.
     file_path: path to the source file.
     function_name: name of the function to locate.
@@ -20,7 +24,11 @@ def extract_code_snippet(file_path: str, function_name: str, window: int = 30) -
     return ""
 
 
-def extract_text_section(file_path: str, start_keyword: str, end_keyword: str) -> str:
+def extract_text_section(
+    file_path: str,
+    start_keyword: str,
+    end_keyword: str,
+) -> str:
     """Return text located between `start_keyword` and `end_keyword`.
     file_path: file to search.
     start_keyword: text marking start of the section.

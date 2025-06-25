@@ -1,10 +1,11 @@
 import os
 import sys
 
-# Allow running the test file directly without modifying PYTHONPATH
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-import tools.context_utils as cu
+try:
+    from tools import context_utils as cu
+except ImportError:  # Allow direct execution without PYTHONPATH tweaks
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+    from tools import context_utils as cu
 
 if __name__ == "__main__":
     # Display the first few files inside the libraries directory
@@ -14,7 +15,10 @@ if __name__ == "__main__":
     snippet = cu.extract_code_snippet(
         "libraries/confluence_lib.pine", "calculateConfluence"
     )
-    print("Snippet start:", snippet.splitlines()[0] if snippet else "not found")
+    print(
+        "Snippet start:",
+        snippet.splitlines()[0] if snippet else "not found",
+    )
 
     # Extract a README section
     text = cu.extract_text_section(

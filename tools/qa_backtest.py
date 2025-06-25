@@ -41,7 +41,10 @@ def run_tradingview_backtest(
         }
         return pd.DataFrame(data)
 
-    base = os.environ.get("TRADINGVIEW_API_BASE", "https://api.tradingview.com")
+    base = os.environ.get(
+        "TRADINGVIEW_API_BASE",
+        "https://api.tradingview.com",
+    )
     url = f"{base}/backtest"
     payload = {
         "script": open(script_path, "r", encoding="utf-8").read(),
@@ -64,7 +67,9 @@ def calculate_metrics(trades: pd.DataFrame) -> Dict[str, float]:
     win_rate = float(wins.mean())
     gross_profit = trades.loc[wins, "profit"].sum()
     gross_loss = abs(trades.loc[~wins, "profit"].sum())
-    profit_factor = float(gross_profit / gross_loss) if gross_loss else float("inf")
+    profit_factor = (
+        float(gross_profit / gross_loss) if gross_loss else float("inf")
+    )
     drawdown = (equity.cummax() - equity).max()
     return {
         "win_rate": round(win_rate, 4),
@@ -87,7 +92,14 @@ def optimize_parameters(
     keys = list(param_grid.keys())
     for combo in product(*param_grid.values()):
         params = dict(zip(keys, combo))
-        trades = run_tradingview_backtest(script_path, params, start, end, api_key, simulate)
+        trades = run_tradingview_backtest(
+            script_path,
+            params,
+            start,
+            end,
+            api_key,
+            simulate,
+        )
         profit = trades["profit"].sum()
         if profit > best_profit:
             best_profit = profit
@@ -128,7 +140,9 @@ def walk_forward(
         )
         segments.append(trades)
         start += outsample
-    all_trades = pd.concat(segments, ignore_index=True) if segments else pd.DataFrame()
+    all_trades = (
+        pd.concat(segments, ignore_index=True) if segments else pd.DataFrame()
+    )
     metrics = calculate_metrics(all_trades)
     return all_trades, metrics
 
@@ -139,7 +153,10 @@ def _resample_array(values: np.ndarray) -> np.ndarray:
     return values[idx]
 
 
-def monte_carlo_analysis(trades: pd.DataFrame, iterations: int = 1000) -> Dict[str, Dict[str, float]]:
+def monte_carlo_analysis(
+    trades: pd.DataFrame,
+    iterations: int = 1000,
+) -> Dict[str, Dict[str, float]]:
     """Run multiple Monte Carlo simulations on the trade list."""
     profits = trades["profit"].to_numpy()
     results = {"shuffle": [], "resample": [], "drop": []}
@@ -191,19 +208,35 @@ def load_csv(path: str) -> pd.DataFrame:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run TradingView WFO backtests")
+    parser = argparse.ArgumentParser(
+        description="Run TradingView WFO backtests",
+    )
     parser.add_argument("script", help="Pine script to test")
     parser.add_argument("data", help="CSV price data")
     parser.add_argument("--api-key", default="", help="TradingView API key")
-    parser.add_argument("--insample", type=int, default=500, help="IS window size")
-    parser.add_argument("--outsample", type=int, default=100, help="OOS window size")
+    parser.add_argument(
+        "--insample",
+        type=int,
+        default=500,
+        help="IS window size",
+    )
+    parser.add_argument(
+        "--outsample",
+        type=int,
+        default=100,
+        help="OOS window size",
+    )
     parser.add_argument(
         "--grid",
         nargs="*",
         default=[],
         help="Parameter grid e.g. len=5,10 step=1,2",
     )
-    parser.add_argument("--simulate", action="store_true", help="Skip API calls")
+    parser.add_argument(
+        "--simulate",
+        action="store_true",
+        help="Skip API calls",
+    )
     args = parser.parse_args()
 
     grid: Dict[str, List[Any]] = {}

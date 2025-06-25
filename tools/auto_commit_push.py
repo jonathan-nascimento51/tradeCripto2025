@@ -12,10 +12,16 @@ def run(cmd: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Stage changes, create a commit and push to the remote repository",
+        description=(
+            "Stage changes, create a commit and push to the remote repository"
+        ),
     )
     parser.add_argument("message", help="Commit message")
-    parser.add_argument("--agent", required=True, help="Agent name for commit tag")
+    parser.add_argument(
+        "--agent",
+        required=True,
+        help="Agent name for commit tag",
+    )
     parser.add_argument(
         "--files",
         nargs="*",
@@ -23,7 +29,9 @@ def main() -> None:
         help="Specific files to add. Defaults to all modified files.",
     )
     parser.add_argument(
-        "--remote", default="origin", help="Git remote to push to (default: origin)"
+        "--remote",
+        default="origin",
+        help="Git remote to push to (default: origin)",
     )
     parser.add_argument(
         "--branch",
