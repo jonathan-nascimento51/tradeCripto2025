@@ -4,6 +4,7 @@ indicator("Auto Fib Extension Refatorado", overlay=true)
 // === INPUTS ===
 // Pivot settings
 depth        = input.int(10, "Pivot Depth", minval=2, tooltip="Bar depth for pivot detection")
+// Flip the orientation of the projected extensions
 reverse      = input.bool(false, "Reverse Direction", inline="Rev")
 
 // Line extension
@@ -118,7 +119,12 @@ f_calculate() =>
         float startP = isUp ? lastLow : lastHigh
         float endP   = isUp ? lastHigh : lastLow
         float diff   = math.abs(endP - startP)
+<<<<<<< ours
         float sign   = isUp ? 1 : -1
+=======
+        // Positive orientation when the last movement was upward; reversed if input is set
+        float sign   = (isUp ? 1 : -1) * (reverse ? -1 : 1)
+>>>>>>> theirs
 
         // Simple range validity based on thresholds
         bool valid = isUp ?
