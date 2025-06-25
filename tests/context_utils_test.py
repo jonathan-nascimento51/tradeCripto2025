@@ -7,21 +7,22 @@ except ImportError:  # Allow direct execution without PYTHONPATH tweaks
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     from tools import context_utils as cu
 
-if __name__ == "__main__":
-    # Display the first few files inside the libraries directory
-    print("Sample files:", cu.get_file_structure("libraries")[:3])
 
-    # Extract a snippet from the confluence library
+def test_context_utils_basic() -> None:
+    """Validate a couple helper functions return expected output."""
+
+    # Should list at least one file under libraries/
+    sample_files = cu.get_file_structure("libraries")
+    assert len(sample_files) > 0
+
+    # Snippet extraction should include the requested function name
     snippet = cu.extract_code_snippet(
         "libraries/confluence_lib.pine", "calculateConfluence"
     )
-    print(
-        "Snippet start:",
-        snippet.splitlines()[0] if snippet else "not found",
-    )
+    assert "calculateConfluence" in snippet
 
-    # Extract a README section
+    # Documentation section between two headings should not be empty
     text = cu.extract_text_section(
-        "README.md", "## Helper Libraries", "## Using the Libraries"
+        "README.md", "## Helper Libraries", "## Context Utilities"
     )
-    print("Section lines:", len(text.splitlines()))
+    assert len(text.splitlines()) > 0
