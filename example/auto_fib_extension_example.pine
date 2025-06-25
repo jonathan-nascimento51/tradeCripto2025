@@ -96,10 +96,14 @@ f_drawLabel(_price, _text, _col, _refLine) =>
 // === PIVOT & FIB CALCULATION ===
 f_calculate() =>
     // Detect pivot formation using built-in helpers
-    isHighPivot = na(ta.pivothigh(high, depth, depth))
-    isLowPivot  = na(ta.pivotlow(low, depth, depth))
+    // Detect pivot confirmation. When ta.pivothigh/low returns a value the
+    // pivot was confirmed `depth` bars ago.
+    isHighPivot = not na(ta.pivothigh(high, depth, depth))
+    isLowPivot  = not na(ta.pivotlow(low, depth, depth))
 
-    // Track last pivot values and their bar indices
+    // Track last pivot values and their confirmation bar indices. Variables
+    // declared with `var` persist between calls so we keep the previous pivot
+    // until a new one forms.
     var float lastHigh = na
     var float lastLow  = na
     var int   lastHighIdx = na
@@ -108,35 +112,31 @@ f_calculate() =>
         lastHigh := high[depth]
         lastHighIdx := bar_index - depth
     if isLowPivot
-        lastLow  := low[depth]
-        lastLowIdx  := bar_index - depth
+        lastLow := low[depth]
+        lastLowIdx := bar_index - depth
 
-    // Ensure we have both pivots to build an extension
+    // Only calculate when we have both pivot types recorded
     if na(lastHigh) or na(lastLow)
         [na, na, na, na, na]
     else
         bool isUp = lastLowIdx < lastHighIdx
-        float startP = isUp ? lastLow : lastHigh
-        float endP   = isUp ? lastHigh : lastLow
+        float startP  = isUp ? lastLow : lastHigh
+        float endP    = isUp ? lastHigh : lastLow
         int   startIdx = isUp ? lastLowIdx : lastHighIdx
         int   endIdx   = isUp ? lastHighIdx : lastLowIdx
-        float diff   = math.abs(endP - startP)
-        // Positive orientation when the last movement was upward; reversed if input is set
-        float sign   = (isUp ? 1 : -1) * (reverse ? -1 : 1)
-
-        // Simple range validity based on thresholds
-        bool valid = isUp ?
-            (lastLow < endP - diff * lowerThresh or lastLow > endP - diff * upperThresh) :
-            (lastHigh > endP + diff * lowerThresh or lastHigh < endP + diff * upperThresh)
-        valid ? [endP, diff, sign, startIdx, endIdx] : [na, na, na, na, na]
+        float diff     = math.abs(endP - startP)
+        // Orientation sign: positive for upward moves, negative for down. The
+        // user may invert the orientation with the `reverse` input.
+        float sign     = (isUp ? 1 : -1) * (reverse ? -1 : 1)
+        [endP, diff, sign, startIdx, endIdx]
 
 [endPrice, span, orient, startIdx, endIdx] = f_calculate()
 
 // Draw pivot markers only when they are not the current Fibonacci anchors
 isHighPivotBar = not na(ta.pivothigh(high, depth, depth))
 isLowPivotBar  = not na(ta.pivotlow(low, depth, depth))
-highIdx = bar_index - depth
-lowIdx  = bar_index - depth
+highIdx = isHighPivotBar ? bar_index - depth : na
+lowIdx  = isLowPivotBar  ? bar_index - depth : na
 plotshape(isHighPivotBar and highIdx != startIdx and highIdx != endIdx,
           style=shape.triangledown, location=location.abovebar,
           color=color.red, size=size.tiny, offset=-depth, title="Pivot High")
