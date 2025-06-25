@@ -311,7 +311,17 @@ if confEnabledInput
                             box confBox = box.new(boxStart, math.max(zone.level, fibo.level), boxStart + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=finalColor, border_color=finalColor, text=str.format("{0,number,#.##%}", norm), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
                             if showPczLabelsInput
-                                label lb = label.new(boxStart, math.avg(zone.level, fibo.level), str.format("PCZ: {0,number,#.##%}", norm), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.black, 50), textcolor=color.white, size=pczLabelSizeInput)
+                                label lb = label.new(
+                                    boxStart,
+                                    math.avg(zone.level, fibo.level),
+                                    str.format("PCZ: {0,number,#.##%}", norm),
+                                    xloc=xloc.bar_index,
+                                    yloc=yloc.price,
+                                    style=label.style_label_down,
+                                    color=color.new(sty.LABEL_BG, 50),
+                                    textcolor=sty.LABEL_TEXT_COLOR,
+                                    size=pczLabelSizeInput,
+                                )
                                 array.push(confLabels, lb)
                                 if array.size(confLabels) > MAX_CONF_LABELS
                                     label.delete(array.shift(confLabels))
