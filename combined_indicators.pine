@@ -60,6 +60,8 @@ w4Input = input.float(0.1, "Weight - Temporal", group="Confluence Engine")
 weightSchemeInput = input.string("linear", "Weight Scheme", options=["linear", "exponential", "logistic"], group="Confluence Engine")
 kDistInput = input.float(1.0, "Exp K Dist", group="Confluence Engine")
 kTempInput = input.float(1.0, "Exp K Temp", group="Confluence Engine")
+showPczLabelsInput = input.bool(true, "Show PCZ Score Labels", group="Confluence Engine")
+pczLabelSizeInput  = input.string("small", "PCZ Label Text Size", options=[size.tiny, size.small, size.normal, size.large, size.huge], group="Confluence Engine")
 
 // ⁕ Estilos – S/R (valores padrão via StyleLib)
 srColorResInput    = input.color(sty.SR_COLOR_RES,    "Resistance (Active Fill)", group="Style – S/R")
@@ -89,12 +91,14 @@ showFibAnchorsInput = input.bool(true, "Show Fibonacci Anchors", group="Style �
 const int MAX_SR_ZONES = 30
 const int MAX_FIB_LEVELS = 20
 const int MAX_CONF_BOXES = 40
+const int MAX_CONF_LABELS = 40
 const int MAX_TRAIN_SAMPLES = 200
 
 var sru.SR_Zone[] sr_zones = array.new<sru.SR_Zone>()
 var fib.FibLevel[] fib_levels = array.new<fib.FibLevel>()
 var fb.Projector fibProjector = fb.newProjector()
 var box[] confBoxes = array.new_box()
+var label[] confLabels = array.new<label>()
 var float[] trainX1 = array.new<float>()
 var float[] trainX2 = array.new<float>()
 var float[] trainX3 = array.new<float>()
@@ -116,6 +120,11 @@ f_pushSample(float x1, float x2, float x3, float y) =>
         array.shift(trainX2)
         array.shift(trainX3)
         array.shift(trainY)
+
+f_clearLabels(label[] lbls) =>
+    for lb in lbls
+        label.delete(lb)
+    array.clear(lbls)
 
 // Determine which weights will be used for the logistic model. If a comma
 // separated string is provided via input, parse it. Otherwise, attempt to
@@ -264,15 +273,25 @@ if confEnabledInput
                         conf.CalculatedWeights result = conf.calculateConfluence(confluenceInput)
                         float score = result.confluence_weight
                         if score > 0
-                            color boxBgColor = color.from_gradient(score, 0.5, 1.5, color.green, color.red)
+                            float norm = math.min(math.max(score, 0), 1)
+                            float transp = 100 - (norm * 100)
+                            color baseColor = color.from_gradient(norm, 0, 1, color.green, color.red)
+                            color finalColor = color.new(baseColor, transp)
                             string confTooltip = "Confluência: " + str.tostring(score, "#.##") + "\nS/R Nível: " + str.tostring(zone.level) + "\nFib Nível: " + str.tostring(fibo.level) + " (" + str.tostring(fibo.ratio * 100, "#.##") + "%)" + "\nS/R Retestes: " + str.tostring(zone.retests)
                             int boxStart = math.min(zone.bar_index, fibo.bar_index)
-                            box confBox = box.new(boxStart, math.max(zone.level, fibo.level), boxStart + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=color.new(boxBgColor, 70), border_color=color.new(boxBgColor, 40), text="✨ " + str.tostring(score, "#.##"), text_halign=text.align_center)
+                            box confBox = box.new(boxStart, math.max(zone.level, fibo.level), boxStart + confluenceBoxWidthInput, math.min(zone.level, fibo.level), bgcolor=finalColor, border_color=finalColor, text=str.format("{0,number,#.##%}", norm), text_halign=text.align_center)
                             cb.pushBox(confBoxes, confBox, MAX_CONF_BOXES)
+                            if showPczLabelsInput
+                                label lb = label.new(boxStart, math.avg(zone.level, fibo.level), str.format("PCZ: {0,number,#.##%}", norm), xloc=xloc.bar_index, yloc=yloc.price, style=label.style_label_down, color=color.new(color.black, 50), textcolor=color.white, size=pczLabelSizeInput)
+                                array.push(confLabels, lb)
+                                if array.size(confLabels) > MAX_CONF_LABELS
+                                    label.delete(array.shift(confLabels))
     else
         cb.clearBoxes(confBoxes)
+        f_clearLabels(confLabels)
 else
     cb.clearBoxes(confBoxes)
+    f_clearLabels(confLabels)
 
 if barstate.isfirst
     table.cell(infoTable, 0, 0, "Indicador", bgcolor=sty.LABEL_BG, text_color=sty.LABEL_TEXT_COLOR, text_halign=text.align_center)
