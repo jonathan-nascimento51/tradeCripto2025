@@ -1,5 +1,4 @@
-/
-/@version=6
+//@version=6
 library("BucketingLib", true)
 import jonathanmoletta17/PricePrecisionLib/1 as pp
 import jonathanmoletta17/MapUtilsLib/1 as map
