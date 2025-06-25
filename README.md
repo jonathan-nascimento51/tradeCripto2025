@@ -2,6 +2,9 @@
 
 This repository contains example Pine Script V6 indicators. The new `ConfluenceLib` library provides a utility to calculate confluence weights between overlapping support/resistance and Fibonacci levels.
 
+## Disclaimer
+Scripts in this repository are provided for educational purposes only and do not constitute financial advice.
+
 ## ConfluenceLib
 `ConfluenceLib.pine` exposes two user defined types, `ConfluenceInput` and `CalculatedWeights`, together with the `calculateConfluence()` function. The score combines multiple factors:
 
