@@ -119,12 +119,8 @@ f_calculate() =>
         float startP = isUp ? lastLow : lastHigh
         float endP   = isUp ? lastHigh : lastLow
         float diff   = math.abs(endP - startP)
-<<<<<<< ours
-        float sign   = isUp ? 1 : -1
-=======
         // Positive orientation when the last movement was upward; reversed if input is set
         float sign   = (isUp ? 1 : -1) * (reverse ? -1 : 1)
->>>>>>> theirs
 
         // Simple range validity based on thresholds
         bool valid = isUp ?
