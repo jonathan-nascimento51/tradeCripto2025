@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 - Fixed exporting array constant in `fib_extension_lib.pine` and
   updated scripts to use color constants directly with `input.color`.
+- Added MAS workshop materials under `docs/mas_workshop.md` and referenced it in
+  the README.
 - Added feedback correction circuit with incident reports and regression prompt template.
 - Added **FibConfluenceEngine** library for clustering Fibonacci levels and highlighting confluence zones.
 - Fixed sorting logic in `clusterLevels()` to ensure compatibility with Pine Script's

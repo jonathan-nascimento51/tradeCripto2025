@@ -292,6 +292,12 @@ The aggregated equity curve for all segments is written to `wfo_report.json`.
 ### Running Monte Carlo
 
 After the walk‑forward run finishes, the script automatically performs Monte Carlo simulations on the generated trade list. The resulting statistics and confidence intervals are stored in `monte_carlo_stats.json` alongside the main metrics file.
+
+## Workshop Materials
+
+The repository includes a two-day workshop on prompt design and multi-agent
+systems. The full agenda is available at
+[docs/mas_workshop.md](docs/mas_workshop.md).
 ## Contribution Guidelines
 
 - Every commit message must begin with `agent::<nome>` as described in `AGENTS.md`.
