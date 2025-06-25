@@ -29,6 +29,16 @@ upperThresh  = input.float(0.236, "Upper Ratio Threshold")
 lowerThresh  = input.float(1.0,   "Lower Ratio Threshold")
 
 // Fibonacci ratios and colors
+fib00 = input.float(0.0,   "Fib 0.0",   step=0.001, group="Fibonacci Ratios")
+fib0236 = input.float(0.236, "Fib 0.236", step=0.001, group="Fibonacci Ratios")
+fib0382 = input.float(0.382, "Fib 0.382", step=0.001, group="Fibonacci Ratios")
+fib050  = input.float(0.5,   "Fib 0.5",   step=0.001, group="Fibonacci Ratios")
+fib0618 = input.float(0.618, "Fib 0.618", step=0.001, group="Fibonacci Ratios")
+fib0786 = input.float(0.786, "Fib 0.786", step=0.001, group="Fibonacci Ratios")
+fib100  = input.float(1.0,   "Fib 1.0",   step=0.001, group="Fibonacci Ratios")
+fib1618 = input.float(1.618, "Fib 1.618", step=0.001, group="Fibonacci Ratios")
+fib2618 = input.float(2.618, "Fib 2.618", step=0.001, group="Fibonacci Ratios")
+
 var float[] fibRatios = array.new<float>()
 var color[] fibColors = array.new<color>()
 var int prevAlphaBg = na
@@ -37,14 +47,15 @@ var int prevAlphaBg = na
 if barstate.isfirst or prevAlphaBg != alphaBg
     array.clear(fibRatios)
     array.clear(fibColors)
-    array.push(fibRatios, 0.0)
-    array.push(fibRatios, 0.236)
-    array.push(fibRatios, 0.382)
-    array.push(fibRatios, 0.5)
-    array.push(fibRatios, 0.618)
-    array.push(fibRatios, 0.786)
-    array.push(fibRatios, 1.0)
-    array.push(fibRatios, 1.618)
+    array.push(fibRatios, fib00)
+    array.push(fibRatios, fib0236)
+    array.push(fibRatios, fib0382)
+    array.push(fibRatios, fib050)
+    array.push(fibRatios, fib0618)
+    array.push(fibRatios, fib0786)
+    array.push(fibRatios, fib100)
+    array.push(fibRatios, fib1618)
+    array.push(fibRatios, fib2618)
     array.push(fibColors, color.new(color.blue,     alphaBg))
     array.push(fibColors, color.new(color.teal,     alphaBg))
     array.push(fibColors, color.new(color.green,    alphaBg))
@@ -53,6 +64,7 @@ if barstate.isfirst or prevAlphaBg != alphaBg
     array.push(fibColors, color.new(color.fuchsia,  alphaBg))
     array.push(fibColors, color.new(color.gray,     alphaBg))
     array.push(fibColors, color.new(color.red,      alphaBg))
+    array.push(fibColors, color.new(color.maroon,   alphaBg))
     prevAlphaBg := alphaBg
 
 // === UTILS ===
@@ -82,36 +94,40 @@ f_drawLabel(_price, _text, _col, _refLine) =>
 
 // === PIVOT & FIB CALCULATION ===
 f_calculate() =>
-    // Detect pivot: simplistic high/low comparison—replace with custom logic if needed
+    // Detect pivot formation using built-in helpers
     isHighPivot = na(ta.pivothigh(high, depth, depth))
     isLowPivot  = na(ta.pivotlow(low, depth, depth))
 
-    // Track last pivot prices
+    // Track last pivot values and their bar indices
     var float lastHigh = na
     var float lastLow  = na
+    var int   lastHighIdx = na
+    var int   lastLowIdx  = na
     if isHighPivot
         lastHigh := high[depth]
+        lastHighIdx := bar_index - depth
     if isLowPivot
         lastLow  := low[depth]
+        lastLowIdx  := bar_index - depth
 
-    // Determine start/end for fib
-    pivotHigh = lastHigh
-    pivotLow  = lastLow
-    isHighLast = na(pivotHigh) == false and pivotHigh > pivotLow
-
-    startP = isHighLast ? pivotHigh : pivotLow
-    endP   = isHighLast ? pivotLow  : pivotHigh
-    diff   = math.abs(startP - endP)
-
-    // Validate threshold
-    valid = isHighLast ? (pivotLow < endP - diff * lowerThresh or pivotLow > endP - diff * upperThresh) : (pivotHigh > endP + diff * lowerThresh or pivotHigh < endP + diff * upperThresh)
-
-    if valid
-        [endP, diff]
+    // Ensure we have both pivots to build an extension
+    if na(lastHigh) or na(lastLow)
+        [na, na, na]
     else
-        [na, na]
+        bool isUp = lastLowIdx < lastHighIdx
+        float startP = isUp ? lastLow : lastHigh
+        float endP   = isUp ? lastHigh : lastLow
+        float diff   = math.abs(endP - startP)
+        float sign   = isUp ? 1 : -1
 
-[endPrice, span] = f_calculate()
+        // Simple range validity based on thresholds
+        bool valid = isUp ?
+            (lastLow < endP - diff * lowerThresh or lastLow > endP - diff * upperThresh) :
+            (lastHigh > endP + diff * lowerThresh or lastHigh < endP + diff * upperThresh)
+
+        valid ? [endP, diff, sign] : [na, na, na]
+
+[endPrice, span, orient] = f_calculate()
 
 // Show a warning instead of halting execution when there is not enough data
 var label warnLbl = na
@@ -134,7 +150,7 @@ var label lastLbl = na
 if not na(endPrice) and showLevels
     for i = 0 to array.size(fibRatios) - 1
         ratio = array.get(fibRatios, i)
-        lvl   = endPrice + span * ratio
+        lvl   = endPrice + span * orient * ratio
         col   = array.get(fibColors, i)
 
         // draw lines
