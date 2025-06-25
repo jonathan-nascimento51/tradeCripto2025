@@ -86,15 +86,40 @@ export drawLevels(
     string lblSize,
     int lblOffset
 ) =>
-    clearLevels(levels)
     float diff = math.abs(lastHigh - lastLow)
     bool isUp  = lastHigh > lastLow
     float[] ratios = _ratios()           // call once to reuse inside the loop
-    for idx = 0 to array.size(ratios) - 1
-        float r = array.get(ratios, idx)
-        float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
-        bool isExt = r > 1.0
-        color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
-        line ln = createLine(startIndex, y, lnCol, isExt, width)
-        label lb = createLabel(startIndex, y, r, idx % 2 == 0, lnCol, lblSize, lblOffset)
-        array.push(levels, FibLevel.new(ln, lb, y, r, startIndex))
+
+    // Recreate drawings only when a new pivot forms
+    bool redraw = array.size(levels) != array.size(ratios) or
+                  (array.size(levels) > 0 and array.get(levels, 0).bar_index != startIndex)
+    if redraw
+        clearLevels(levels)
+        for idx = 0 to array.size(ratios) - 1
+            float r = array.get(ratios, idx)
+            float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
+            bool isExt = r > 1.0
+            color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
+            line ln = createLine(startIndex, y, lnCol, isExt, width)
+            label lb = createLabel(startIndex, y, r, idx % 2 == 0, lnCol, lblSize, lblOffset)
+            array.push(levels, FibLevel.new(ln, lb, y, r, startIndex))
+    else
+        for idx = 0 to array.size(ratios) - 1
+            float r = array.get(ratios, idx)
+            float y = calcLevel(lastHigh, lastLow, diff, isUp, r)
+            bool isExt = r > 1.0
+            color lnCol = isExt ? (isUp ? extUpColor : extDnColor) : baseColor
+            FibLevel fl = array.get(levels, idx)
+            line ln = fl.ln
+            label lb = fl.lbl
+            ln.set_xy1(startIndex, y)
+            ln.set_xy2(startIndex + 1, y)
+            ln.set_color(lnCol)
+            ln.set_width(width)
+            ln.set_style(isExt ? line.style_solid : line.style_dotted)
+            lb.set_xy(startIndex + (idx % 2 == 0 ? lblOffset : -lblOffset), y)
+            lb.set_text(str.tostring(r * 100, "#.##") + "% " + (r > 1 ? "Extensão" : "Retração") + " → " + str.tostring(y, format.mintick))
+            lb.set_color(color.new(lnCol, 80))
+            lb.set_textcolor(lnCol)
+            lb.set_size(lblSize)
+            array.set(levels, idx, FibLevel.new(ln, lb, y, r, startIndex))

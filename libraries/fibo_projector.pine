@@ -98,21 +98,52 @@ export method clearDrawings(Projector self) =>
 // zone box. Drawings extend to `right` (bar index).
 // -----------------------------------------------------------------------------
 export method draw(Projector self, int left, int right, color baseColor, color extColor, color goldColor, int width, string lblSize, int lblOff) =>
-    self.clearDrawings()
-    for i = 0 to array.size(self.levels) - 1
-        float lvl = array.get(self.levels, i)
-        float r = array.get(self.ratios, i)
-        color lnCol = r > 1.0 ? extColor : baseColor
-        line ln = line.new(left, lvl, right, lvl, color=lnCol, width=width, extend=extend.right)
-        string txt = str.tostring(r * 100, "#.##") + "%"
-        label lb = label.new(left, lvl,
-                             text=txt,
-                             xloc=xloc.bar_index,
-                             style=lblOff > 0 ? label.style_label_left : label.style_label_right,
-                             color=color.new(lnCol, 80),
-                             textcolor=lnCol,
-                             size=lblSize)
-        lb.set_x(left + lblOff)
-        array.push(self.lines, ln)
-        array.push(self.labels, lb)
-    self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor, 80), border_color=goldColor)
+    bool redraw = array.size(self.lines) != array.size(self.levels) or
+                  array.size(self.lines) == 0 or
+                  line.get_x1(array.get(self.lines, 0)) != left or
+                  line.get_x2(array.get(self.lines, 0)) != right
+    if redraw
+        self.clearDrawings()
+        for i = 0 to array.size(self.levels) - 1
+            float lvl = array.get(self.levels, i)
+            float r = array.get(self.ratios, i)
+            color lnCol = r > 1.0 ? extColor : baseColor
+            line ln = line.new(left, lvl, right, lvl, color=lnCol, width=width, extend=extend.right)
+            string txt = str.tostring(r * 100, "#.##") + "%"
+            label lb = label.new(left, lvl,
+                                 text=txt,
+                                 xloc=xloc.bar_index,
+                                 style=lblOff > 0 ? label.style_label_left : label.style_label_right,
+                                 color=color.new(lnCol, 80),
+                                 textcolor=lnCol,
+                                 size=lblSize)
+            lb.set_x(left + lblOff)
+            array.push(self.lines, ln)
+            array.push(self.labels, lb)
+        self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor, 80), border_color=goldColor)
+    else
+        for i = 0 to array.size(self.levels) - 1
+            float lvl = array.get(self.levels, i)
+            float r = array.get(self.ratios, i)
+            color lnCol = r > 1.0 ? extColor : baseColor
+            line ln = array.get(self.lines, i)
+            label lb = array.get(self.labels, i)
+            ln.set_xy1(left, lvl)
+            ln.set_xy2(right, lvl)
+            ln.set_color(lnCol)
+            ln.set_width(width)
+            lb.set_xy(left, lvl)
+            lb.set_x(left + lblOff)
+            lb.set_text(str.tostring(r * 100, "#.##") + "%")
+            lb.set_color(color.new(lnCol, 80))
+            lb.set_textcolor(lnCol)
+            lb.set_size(lblSize)
+        if na(self.goldBox)
+            self.goldBox := box.new(left, self.upper, right, self.lower, bgcolor=color.new(goldColor, 80), border_color=goldColor)
+        else
+            self.goldBox.set_left(left)
+            self.goldBox.set_right(right)
+            self.goldBox.set_top(self.upper)
+            self.goldBox.set_bottom(self.lower)
+            self.goldBox.set_bgcolor(color.new(goldColor, 80))
+            self.goldBox.set_border_color(goldColor)
