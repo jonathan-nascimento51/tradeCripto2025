@@ -28,7 +28,10 @@ export getRatios() => _ratios()
 // Returns the price level for the given Fibonacci ratio.
 // -----------------------------------------------------------------------------
 export calcLevel(float lastHigh, float lastLow, float diff, bool isUp, float ratio) =>
-    isUp ? lastHigh + diff * ratio : lastLow - diff * ratio
+    // Determine the correct orientation based on the swing direction
+    float endPrice = isUp ? lastHigh : lastLow
+    float sign = isUp ? 1 : -1
+    ratio <= 1 ? endPrice - sign * diff * ratio : endPrice + sign * diff * (ratio - 1)
 
 // -----------------------------------------------------------------------------
 // createLine
