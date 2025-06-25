@@ -1,6 +1,8 @@
 //@version=6
 library("SRZoneUtils", true)
 
+import "style_lib.pine" as sty
+
 // ---- User defined type representing a support/resistance zone ----
 export type SR_Zone
     int bar_index
@@ -52,9 +54,9 @@ export handleRetest(SR_Zone zone, int retestCount, float probStep, color borderC
     zone.lbl.set_text(str.tostring(zone.retests) + 'x')
     zone.lbl.set_x(bar_index + 1)
     zone.lbl.set_y(zone.level)
-    zone.lbl.set_style(label.style_label_left)
-    zone.lbl.set_size(size.tiny)
-    zone.lbl.set_color(color.new(color.gray, 20))
+    zone.lbl.set_style(sty.LABEL_STYLE)
+    zone.lbl.set_size(sty.LABEL_SIZE)
+    zone.lbl.set_color(color.new(sty.LABEL_BG, 20))
     zone.lbl.set_textcolor(srColorValid)
     bool validated = false
     if zone.retests >= retestCount and zone.status != "Validated"
@@ -66,7 +68,7 @@ export handleRetest(SR_Zone zone, int retestCount, float probStep, color borderC
         zone.fill_obj.set_color(srColorValid)
         zone.lbl.set_text("✔")
         zone.lbl.set_color(color.new(srColorValid, 25))
-        zone.lbl.set_textcolor(color.white)
+        zone.lbl.set_textcolor(sty.LABEL_TEXT_COLOR)
         zone.lbl.set_tooltip("Zona Validada com " + str.tostring(zone.retests) + " retestes.")
         validated := true
     zone.probability := math.min(1.0, zone.probability + probStep)
@@ -91,7 +93,7 @@ export markBroken(SR_Zone zone, int retestCount, color borderColorBroken, color 
     string retestInfo = str.tostring(zone.retests)
     zone.lbl.set_text("B (" + retestInfo + ")")
     zone.lbl.set_textcolor(srColorBroken)
-    zone.lbl.set_color(color.new(color.gray, 80))
+    zone.lbl.set_color(color.new(sty.LABEL_BG, 80))
     zone.lbl.set_tooltip("Zona rompida após " + retestInfo + " retestes.")
     zone.retests < retestCount
 
