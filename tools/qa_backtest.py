@@ -36,7 +36,7 @@ def run_tradingview_backtest(
         rng = np.random.default_rng()
         count = rng.integers(5, 20)
         data = {
-            "timestamp": pd.date_range(start=start, periods=count, freq="H"),
+            "timestamp": pd.date_range(start=start, periods=count, freq="h"),
             "profit": rng.normal(loc=10, scale=50, size=count),
         }
         return pd.DataFrame(data)

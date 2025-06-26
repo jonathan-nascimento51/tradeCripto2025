@@ -13,7 +13,7 @@ except ImportError:  # Allows running without adjusting PYTHONPATH
 def test_walk_forward_and_monte_carlo() -> None:
     """Verify walk-forward backtesting and MC analysis run without error."""
 
-    dates = pd.date_range("2022-01-01", periods=60, freq="H")
+    dates = pd.date_range("2022-01-01", periods=60, freq="h")
     df = pd.DataFrame(
         {"open": 1, "high": 1, "low": 1, "close": 1},
         index=dates,
